@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言客户端网络层交互流程:  获取参数，统一配置 根据API配置公共参数 构造网络请求 发送网络请求 获取返回结果 展示数据  注：此处还应该有个 数据持久化 流程，因项目业务层逻辑及存储方案各不相同，本篇中不展开介绍另：本篇幅中暂时只涉及到HTTP的请求，TCP及UDP的网络交互处理又不一样，需要考虑的也不相同（如：TCP考虑包顺序处理及回调分发问题，UDP考虑丢包及无序处理）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS 网络层架构设计与实现">
+<meta property="og:url" content="http://example.com/2016/03/20/iOS-network-design/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言客户端网络层交互流程:  获取参数，统一配置 根据API配置公共参数 构造网络请求 发送网络请求 获取返回结果 展示数据  注：此处还应该有个 数据持久化 流程，因项目业务层逻辑及存储方案各不相同，本篇中不展开介绍另：本篇幅中暂时只涉及到HTTP的请求，TCP及UDP的网络交互处理又不一样，需要考虑的也不相同（如：TCP考虑包顺序处理及回调分发问题，UDP考虑丢包及无序处理）">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-03-20T02:28:29.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.208Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="iOS">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2016/03/20/iOS-network-design/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>iOS 网络层架构设计与实现 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2016/03/20/iOS-network-design/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          iOS 网络层架构设计与实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-03-20 10:28:29" itemprop="dateCreated datePublished" datetime="2016-03-20T10:28:29+08:00">2016-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>客户端网络层交互流程:</p>
+<ul>
+<li>获取参数，统一配置</li>
+<li>根据API配置公共参数</li>
+<li>构造网络请求</li>
+<li>发送网络请求</li>
+<li>获取返回结果</li>
+<li>展示数据</li>
+</ul>
+<p>注：此处还应该有个 <code>数据持久化</code> 流程，因项目业务层逻辑及存储方案各不相同，本篇中不展开介绍<br>另：本篇幅中暂时只涉及到HTTP的请求，TCP及UDP的网络交互处理又不一样，需要考虑的也不相同（如：TCP考虑包顺序处理及回调分发问题，UDP考虑丢包及无序处理）</p>
+<span id="more"></span>
+
+<blockquote>
+<p>记录： iOS TCP链接使用 <code>GCDAsyncSocket</code>库；<br>UDP简单实现丢包处理方法，给文件分块，每个数据包的头部添加一个唯一标识序号的ID值，当接收到的包头部ID不是期望中的ID号，则判定丢包，将丢包ID发回服务端，服务端接收到丢包响应则重发丢失的数据包<br>UDP模拟TCP协议三次握手，这样对丢包处理有帮助</p>
+</blockquote>
+<p><strong>本文是博主15年读casa中<a target="_blank" rel="noopener" href="https://casatwy.com/iosying-yong-jia-gou-tan-wang-luo-ceng-she-ji-fang-an.html">网络层设计方案</a>的记录与思考总结。</strong></p>
+<h2 id="聊聊AFN"><a href="#聊聊AFN" class="headerlink" title="聊聊AFN"></a>聊聊AFN</h2><p>AFN2.x特性：</p>
+<ul>
+<li>使用NSOperation，支持取消，不需占用完整线程（只在一个线程等待）</li>
+<li>通过NSOperationQueue来进行并发任务数量限制（maxConcurrentOperationCount）</li>
+<li>可暂停，可添加依赖</li>
+<li>安全性设置（HTTPS、AFURLConnectOperationSSLPinningMode）</li>
+<li>HTTP缓存（NSURLCache，数据缓存在本地sqlite里，需要服务器配合，设置请求头部信息）<br>注：在等待请求时只有一个Thread，在这个Thread上启动一个runloop监听NSURLConnection的NSMachPort类型源。start里面直接跳转到这个线程执行，在加入NSOperationQueue时，顶多start方法执行的时候占用一个线程，然后真正的发送请求和等待都是在这个NetworkRequestThread里面进行的（而最终访问网络并拉取数据不是这个线程，是NSURLConnection统一调度）。</li>
+</ul>
+<h2 id="网络交互中可以做哪些"><a href="#网络交互中可以做哪些" class="headerlink" title="网络交互中可以做哪些"></a>网络交互中可以做哪些</h2><table>
+<thead>
+<tr>
+<th>流程项</th>
+<th>可操作项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>获取参数，统一配置</td>
+<td>进行参数验证</td>
+</tr>
+<tr>
+<td>根据API配置公共参数</td>
+<td>组件化配置HTTP头部、cookie、签名等</td>
+</tr>
+<tr>
+<td>构造请求</td>
+<td>设置拦截器进行拦截请求</td>
+</tr>
+<tr>
+<td>发出请求</td>
+<td>对已发出请求记录ID，统一管理（缓存）</td>
+</tr>
+<tr>
+<td>返回结果</td>
+<td>设置拦截器进行网络请求返回拦截，验证返回数据正确性、缓存数据</td>
+</tr>
+<tr>
+<td>展示数据</td>
+<td>根据API及业务层展示的需要，使用reformer将数据转化成任何你想要的东西（NSDictionary、DataList、View）</td>
+</tr>
+</tbody></table>
+<h3 id="1-参数验证"><a href="#1-参数验证" class="headerlink" title="1.参数验证"></a>1.参数验证</h3><ul>
+<li>注册账号或者发货信息等有必填选项，避免调用API产生不必要的开销</li>
+<li>代码即文档，只需看这个验证函数就知道需要传什么参数</li>
+</ul>
+<h3 id="2-组件化"><a href="#2-组件化" class="headerlink" title="2.组件化"></a>2.组件化</h3><ul>
+<li>使用工厂模式生产出不同的服务，每个服务配置好自己的线上线下url及版本号等信息（方便灵活），独立的组件来解耦API调用逻辑生产各种参数</li>
+</ul>
+<h3 id="3-根据不同API的配置使用2种策略"><a href="#3-根据不同API的配置使用2种策略" class="headerlink" title="3.根据不同API的配置使用2种策略"></a>3.根据不同API的配置使用2种策略</h3><ul>
+<li>正在请求时，忽略新来的请求（当滚动tableview时，会频繁触发加载下一页的事件，如果当前APIManager正在加载下一页，那么就不需要再发送加载请求）</li>
+<li>正在请求时，取消过去已发送的请求，执行现在请求（查询商品，切换筛选条件时，如果前一次筛选条件的请求正在进行中，那么就应当取消前一次请求，执行现在的请求 — 考虑到正在进行的请求取消设计）</li>
+</ul>
+<h3 id="4-通过将NSOperation保存requestID成NSMutableDictionary，随时依照requestID查找请求并支持取消"><a href="#4-通过将NSOperation保存requestID成NSMutableDictionary，随时依照requestID查找请求并支持取消" class="headerlink" title="4.通过将NSOperation保存requestID成NSMutableDictionary，随时依照requestID查找请求并支持取消"></a>4.通过将NSOperation保存requestID成NSMutableDictionary，随时依照requestID查找请求并支持取消</h3><h3 id="5-缓存"><a href="#5-缓存" class="headerlink" title="5.缓存"></a>5.缓存</h3><ul>
+<li>接口返回的数据很少变动，不希望做重复请求</li>
+<li>网络慢或者服务器等异常状况容灾</li>
+</ul>
+<p>引申：对于一些点赞和取消 频繁与网络交互的设计考虑</p>
+<h2 id="网络层与业务层对接部分设计"><a href="#网络层与业务层对接部分设计" class="headerlink" title="网络层与业务层对接部分设计"></a>网络层与业务层对接部分设计</h2><h3 id="1-使用哪种交互模式与业务层做对接"><a href="#1-使用哪种交互模式与业务层做对接" class="headerlink" title="1.使用哪种交互模式与业务层做对接"></a>1.使用哪种交互模式与业务层做对接</h3><ul>
+<li>以什么方式将数据交付给业务层<br>a.以Delegate为主，Notification为辅；尽可能减少跨层数据交流的可能，限制耦合；统一回调方法，便于调试和维护；在跟业务层对接的部分只采用一种对接方式，限制灵活性，以此来交换应用的可维护性（delegate对上下文有限制性）。<br>b.在网络请求和网络层接受请求的地方，使用Block没问题，但在获得数据交给业务方时，最好还是通过Delegate去通知到业务方。</li>
+<li>交付什么样的数据给业务层<br>选择合适的reformer将View可以直接使用的数据（甚至reformer可以用来直接生成View）转化好之后交付给View；对于网络层而言，只需要保持住原始数据即可，不需要主动转化成数据model，数据采用NSDictionary加const字符串key来表征，避免了使用model来表征带来的迁移困难，同时不失去可读性</li>
+</ul>
+<h3 id="2-是否有必要将API返回的数据封装成对象然后再交付给业务层"><a href="#2-是否有必要将API返回的数据封装成对象然后再交付给业务层" class="headerlink" title="2.是否有必要将API返回的数据封装成对象然后再交付给业务层"></a>2.是否有必要将API返回的数据封装成对象然后再交付给业务层</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">先定义一个<span class="keyword">protocol</span>：</span><br><span class="line">@<span class="title class_">protocol</span> <span class="title class_">ReformerProtocol</span> &lt;<span class="title class_">NSObject</span>&gt;</span><br><span class="line">- (<span class="title class_">NSDictionary</span>)<span class="title class_">reformDataWithManager</span>:(<span class="title class_">APIManager</span> *)<span class="title class_">manager</span>;</span><br><span class="line">@<span class="title class_">end</span></span><br><span class="line">在<span class="title class_">Controller</span>里是这样：</span><br><span class="line">@<span class="title class_">property</span> (<span class="title class_">nonatomic</span>, <span class="title class_">strong</span>) <span class="title class_">id</span>&lt;<span class="title class_">ReformerProtocol</span>&gt; <span class="title class_">XXXReformer</span>;</span><br><span class="line">@<span class="title class_">property</span> (<span class="title class_">nonatomic</span>, <span class="title class_">strong</span>) <span class="title class_">id</span>&lt;<span class="title class_">ReformerProtocol</span>&gt; <span class="title class_">YYYReformer</span>;</span><br><span class="line">#<span class="title class_">pragma</span> <span class="title class_">mark</span> - <span class="title class_">APIManagerDelegate</span></span><br><span class="line">- (<span class="title class_">void</span>)<span class="title class_">apiManagerDidSuccess</span>:(<span class="title class_">APIManager</span> *)<span class="title class_">manager</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">NSDictionary</span> <span class="operator">*</span>reformedXXXData <span class="operator">=</span> [manager fetchDataWithReformer:<span class="keyword">self</span>.<span class="type">XXXReformer</span>];</span><br><span class="line">    [<span class="keyword">self</span>.<span class="type">XXXView</span> configWithData:reformedXXXData];</span><br><span class="line">    <span class="type">NSDictionary</span> <span class="operator">*</span>reformedYYYData <span class="operator">=</span> [manager fetchDataWithReformer:<span class="keyword">self</span>.<span class="type">YYYReformer</span>];</span><br><span class="line">    [<span class="keyword">self</span>.<span class="type">YYYView</span> configWithData:reformedYYYData];</span><br><span class="line">&#125;</span><br><span class="line">在<span class="type">APIManager里面，fetchDataWithReformer是这样：</span></span><br><span class="line"><span class="operator">-</span> (<span class="type">NSDictionary</span>)fetchDataWithReformer:(id<span class="operator">&lt;</span><span class="type">ReformerProtocol</span><span class="operator">&gt;</span>)reformer</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (reformer <span class="operator">==</span> <span class="literal">nil</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">self</span>.rawData;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> [reformer reformDataWithManager:<span class="keyword">self</span>];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>a.reformer是一个符合ReformerProtocol的对象，它提供了通用的方法供Manager使用；</p>
+<p>b.API的原始数据（JSON对象）由Manager实例保管，reformer方法里面取Manager的原始数据（manager.rawData）做转换，然后交付出去。就比方是：莲蓬头的水管部分是Manager，负责提供原始水流（数据流），reformer就是不同的漏斗模式，换什么reformer就能出来什么形式的水（是不是有一种RAC信号的感觉）。</p>
+<p>c.例子中举的场景是一个API数据被多个View使用的情况，体现了reformer的一个特点：<strong>可以根据需要改变同一数据来源的展示方式</strong>。比如API数据展示的是“附近的小区”，那么这个数据可以被列表（XXXView）和地图（YYYView）共用，不同的view使用的数据转化方式不一样，这就通过不同的reformer解决了。</p>
+<h3 id="3-使用集约型调用方式还是离散型方式调用API"><a href="#3-使用集约型调用方式还是离散型方式调用API" class="headerlink" title="3.使用集约型调用方式还是离散型方式调用API"></a>3.使用集约型调用方式还是离散型方式调用API</h3><p>建议方式：对外提供一个BaseAPIManager来给业务方做派生，在BaseManager里面采用集约型的手段，加密处理、URL拼接、组装请求和放飞请求，然而业务方调用API时，则是以离散的API方式来调用。<br>实际上，在博主之前做的项目中，账号系统及充值计费系统是属于集约型调用方式，主要是需求简单，调用接口多，返回数据处理逻辑简单。</p>
+<blockquote>
+<p>离散型单独对某个API请求的起飞和着陆过程可以进行AOP拦截，<strong>做到参数验证及返回数据缓存等操作</strong>，reformer机制就是基于离散型的API调用方式的。</p>
+</blockquote>
+<h2 id="设计代码层面"><a href="#设计代码层面" class="headerlink" title="设计代码层面"></a>设计代码层面</h2><h3 id="1-APIBaseManager存在的意义"><a href="#1-APIBaseManager存在的意义" class="headerlink" title="1.APIBaseManager存在的意义"></a>1.APIBaseManager存在的意义</h3><p><a target="_blank" rel="noopener" href="https://github.com/casatwy/RTNetworking/blob/master/CTNetworking/CTNetworking/Components/BaseAPIManager/CTAPIBaseManager.h">具体代码链接</a></p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">BaseAPIManager的init方法里这么写：</span></span><br><span class="line"><span class="comment">// 注意是weak。</span></span><br><span class="line"><span class="meta">@property</span> (nonatomic, <span class="keyword">weak</span>) id<span class="operator">&lt;</span><span class="type">APIManager</span><span class="operator">&gt;</span> child;</span><br><span class="line"><span class="operator">-</span> (instancetype)<span class="keyword">init</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">self</span> <span class="operator">=</span> [<span class="keyword">super</span> <span class="keyword">init</span>];</span><br><span class="line">    <span class="keyword">if</span> ([<span class="keyword">self</span> conformsToProtocol:<span class="meta">@protocol</span>(<span class="type">APIManager</span>)]) &#123;</span><br><span class="line">        <span class="keyword">self</span>.child <span class="operator">=</span> (id<span class="operator">&lt;</span><span class="type">APIManager</span><span class="operator">&gt;</span>)<span class="keyword">self</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 不遵守这个protocol的就让他crash，防止派生类乱来。</span></span><br><span class="line">        <span class="type">NSAssert</span>(<span class="type">NO</span>, <span class="string">&quot;子类必须要实现APIManager这个protocol。&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">protocol</span>这么写，把原本要重载的函数都定义在这个<span class="title class_">protocol</span>里面，就不用在父类里面写空方法了：</span><br><span class="line">@<span class="title class_">protocol</span> <span class="title class_">APIManager</span> &lt;<span class="title class_">NSObject</span>&gt;</span><br><span class="line">@<span class="title class_">required</span></span><br><span class="line">- (<span class="title class_">NSString</span> *)<span class="title class_">apiMethodName</span>;</span><br><span class="line">...</span><br><span class="line">@<span class="title class_">end</span></span><br><span class="line">然后在父类里面如果要使用的话，就这么写：</span><br><span class="line">[<span class="title class_">self</span> <span class="title class_">requestWithAPIName</span>:[<span class="title class_">self</span>.<span class="title class_">child</span> <span class="title class_">apiMethodName</span>] ......];</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>将子类的继承方式标准化 <code>&lt;APIManager&gt;</code></p>
+</li>
+<li><p>interceptor 同时支持外部拦截和内部拦截（TODO：说明内部拦截和外部拦截区别）</p>
+</li>
+<li><p>提供撤销网络请求的方法</p>
+</li>
+<li><p>获得数据后，使用reformer转化成图片、语音以及任何你希望得到的东西</p>
+</li>
+<li><p>可配置缓存</p>
+</li>
+<li><p>它是衔接业务逻辑和底层API调用的一个组件，其派生出来的各种APIManager在各个APP上都可重用、可移植，方便代码管理<br>blabla：同一个API不用重复写同一段调用代码和回调取数据逻辑，提高代码的组件化程度和集成度；Manager和Controller之间的关系可以不必非常紧密，切换API非常方便，降低了不必要的耦合（属于Model层）</p>
+<h3 id="2-使用reformer（外观模式）"><a href="#2-使用reformer（外观模式）" class="headerlink" title="2.使用reformer（外观模式）"></a>2.使用reformer（外观模式）</h3><p>a.在处理单View对多API，以及在单API对多View的情况时，reformer提供了非常优雅的手段来响应这种需求，隔离了转化逻辑和主体业务逻辑，避免了维护灾难。<br>b.转化逻辑集中，且将转化次数转为只有一次。使用数据原型的转化逻辑至少有两次，第一次把json映射成对应model，第二次把model变成能被View处理的数据。而reformer一步到位。<br>c.业务数据和业务有了适当的隔离，将来如果业务逻辑有修改，换一个reformer改掉就好；若其他业务也有相同的数据转化逻辑，其他业务直接拿着这个reformer就可以用了，不需要重写。</p>
+</li>
+</ul>
+<h2 id="网络层优化方案"><a href="#网络层优化方案" class="headerlink" title="网络层优化方案"></a>网络层优化方案</h2><ul>
+<li>安全机制</li>
+<li>请求优化（缓存，策略）</li>
+<li>DNS缓存映射</li>
+<li>链接复用（SPDY）</li>
+</ul>
+<p>参考：<a target="_blank" rel="noopener" href="http://mrpeak.cn/blog/ios-network/">深度优化iOS网络模块</a><br><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000004369289">iOS网络优化之DNS映射</a></p>
+<h2 id="还可以做哪些？"><a href="#还可以做哪些？" class="headerlink" title="还可以做哪些？"></a>还可以做哪些？</h2><ul>
+<li>请求重发机制</li>
+<li>批量网络请求发送，并统一设置他们的回调</li>
+<li>设置有相互依赖的网络请求发送<br>扩展提问：网络部分token过期，如何处理？</li>
+</ul>
+<blockquote>
+<p>遇到token失效就扔个Notification出去。XAPIManager请求失败（token失效，且在BaseApiManager中判断）后，扔出通知，将通知的object设为当前失败的这个Manager也就是XManager。然后中间人收到通知，记录下随着Notification过来的Object，也就是失败的那个Manager。然后在当前ViewController中present登陆页面。中间人收到Token刷新成功的回调，拿出刚才拿到的失败的那个Manager，直接调用[XManager loadData]，顺便dismiss掉登录页面，就好了。参数会由XManager的paramSource提供，你只管调loadData就好了，paramSource的重要性就体现在这里了。回调什么的也在你上一次失败时的页面内，整个过程完全无缝，且基本没有耦合</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2016/03/20/iOS-network-design/" title="iOS 网络层架构设计与实现">http://example.com/2016/03/20/iOS-network-design/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iOS/" rel="tag"># iOS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/02/05/annual-summary-of-programmer-2015/" rel="prev" title="非典型程序猿羊年总结">
+      <i class="fa fa-chevron-left"></i> 非典型程序猿羊年总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/09/14/iOS-RunLoop-Learn/" rel="next" title="iOS RunLoop理解及实践场景分析">
+      iOS RunLoop理解及实践场景分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%8A%E8%81%8AAFN"><span class="nav-number">2.</span> <span class="nav-text">聊聊AFN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E4%BA%A4%E4%BA%92%E4%B8%AD%E5%8F%AF%E4%BB%A5%E5%81%9A%E5%93%AA%E4%BA%9B"><span class="nav-number">3.</span> <span class="nav-text">网络交互中可以做哪些</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%82%E6%95%B0%E9%AA%8C%E8%AF%81"><span class="nav-number">3.1.</span> <span class="nav-text">1.参数验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BB%84%E4%BB%B6%E5%8C%96"><span class="nav-number">3.2.</span> <span class="nav-text">2.组件化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%A0%B9%E6%8D%AE%E4%B8%8D%E5%90%8CAPI%E7%9A%84%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A82%E7%A7%8D%E7%AD%96%E7%95%A5"><span class="nav-number">3.3.</span> <span class="nav-text">3.根据不同API的配置使用2种策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E9%80%9A%E8%BF%87%E5%B0%86NSOperation%E4%BF%9D%E5%AD%98requestID%E6%88%90NSMutableDictionary%EF%BC%8C%E9%9A%8F%E6%97%B6%E4%BE%9D%E7%85%A7requestID%E6%9F%A5%E6%89%BE%E8%AF%B7%E6%B1%82%E5%B9%B6%E6%94%AF%E6%8C%81%E5%8F%96%E6%B6%88"><span class="nav-number">3.4.</span> <span class="nav-text">4.通过将NSOperation保存requestID成NSMutableDictionary，随时依照requestID查找请求并支持取消</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%BC%93%E5%AD%98"><span class="nav-number">3.5.</span> <span class="nav-text">5.缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E5%B1%82%E4%B8%8E%E4%B8%9A%E5%8A%A1%E5%B1%82%E5%AF%B9%E6%8E%A5%E9%83%A8%E5%88%86%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">网络层与业务层对接部分设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8%E5%93%AA%E7%A7%8D%E4%BA%A4%E4%BA%92%E6%A8%A1%E5%BC%8F%E4%B8%8E%E4%B8%9A%E5%8A%A1%E5%B1%82%E5%81%9A%E5%AF%B9%E6%8E%A5"><span class="nav-number">4.1.</span> <span class="nav-text">1.使用哪种交互模式与业务层做对接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%98%AF%E5%90%A6%E6%9C%89%E5%BF%85%E8%A6%81%E5%B0%86API%E8%BF%94%E5%9B%9E%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B0%81%E8%A3%85%E6%88%90%E5%AF%B9%E8%B1%A1%E7%84%B6%E5%90%8E%E5%86%8D%E4%BA%A4%E4%BB%98%E7%BB%99%E4%B8%9A%E5%8A%A1%E5%B1%82"><span class="nav-number">4.2.</span> <span class="nav-text">2.是否有必要将API返回的数据封装成对象然后再交付给业务层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8%E9%9B%86%E7%BA%A6%E5%9E%8B%E8%B0%83%E7%94%A8%E6%96%B9%E5%BC%8F%E8%BF%98%E6%98%AF%E7%A6%BB%E6%95%A3%E5%9E%8B%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8API"><span class="nav-number">4.3.</span> <span class="nav-text">3.使用集约型调用方式还是离散型方式调用API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E4%BB%A3%E7%A0%81%E5%B1%82%E9%9D%A2"><span class="nav-number">5.</span> <span class="nav-text">设计代码层面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-APIBaseManager%E5%AD%98%E5%9C%A8%E7%9A%84%E6%84%8F%E4%B9%89"><span class="nav-number">5.1.</span> <span class="nav-text">1.APIBaseManager存在的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8reformer%EF%BC%88%E5%A4%96%E8%A7%82%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="nav-number">5.2.</span> <span class="nav-text">2.使用reformer（外观模式）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E5%B1%82%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="nav-number">6.</span> <span class="nav-text">网络层优化方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%98%E5%8F%AF%E4%BB%A5%E5%81%9A%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">还可以做哪些？</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '4dadfea3303584e0124d6ad0d644bef6',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

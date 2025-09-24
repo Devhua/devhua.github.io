@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言本文从企业建设大数据平台背景出发，介绍DataOps 概念目标和体系化实践建议，给企业大数据平台建设和优化提供一些借鉴。 背景近年来，数据平台在企业数字化转型过程起着越来越重要的作用，给企业的战略分析和业务推动带来强有力的数据支撑，可以快速、高质量地提供数据服务，从而实现数据价值。 然而随着企业对数据集成和分析的需求不断增长，数据源种类多，数据工具和架构复杂，对数据平台的能力要求也越来越高。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DataOps 体系化">
+<meta property="og:url" content="http://example.com/2022/07/21/what-dataops/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言本文从企业建设大数据平台背景出发，介绍DataOps 概念目标和体系化实践建议，给企业大数据平台建设和优化提供一些借鉴。 背景近年来，数据平台在企业数字化转型过程起着越来越重要的作用，给企业的战略分析和业务推动带来强有力的数据支撑，可以快速、高质量地提供数据服务，从而实现数据价值。 然而随着企业对数据集成和分析的需求不断增长，数据源种类多，数据工具和架构复杂，对数据平台的能力要求也越来越高。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/07/21/what-dataops/data-architecture.jpg">
+<meta property="og:image" content="http://example.com/2022/07/21/what-dataops/dataops-introduce.jpeg">
+<meta property="og:image" content="http://example.com/2022/07/21/what-dataops/dataops-vs.png">
+<meta property="og:image" content="http://example.com/2022/07/21/what-dataops/dataops-process.jpg">
+<meta property="article:published_time" content="2022-07-21T09:56:15.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.212Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="DataOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/07/21/what-dataops/data-architecture.jpg">
+
+<link rel="canonical" href="http://example.com/2022/07/21/what-dataops/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DataOps 体系化 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/21/what-dataops/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DataOps 体系化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-21 17:56:15" itemprop="dateCreated datePublished" datetime="2022-07-21T17:56:15+08:00">2022-07-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>本文从企业建设大数据平台背景出发，介绍DataOps 概念目标和体系化实践建议，给企业大数据平台建设和优化提供一些借鉴。</p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>近年来，数据平台在企业数字化转型过程起着越来越重要的作用，给企业的战略分析和业务推动带来强有力的数据支撑，可以快速、高质量地提供数据服务，从而实现数据价值。</p>
+<p>然而随着企业对数据集成和分析的需求不断增长，数据源种类多，数据工具和架构复杂，对数据平台的能力要求也越来越高。</p>
+<span id="more"></span>
+
+<p><img src="/2022/07/21/what-dataops/data-architecture.jpg" alt="data-architecture"></p>
+<p>落地大数据平台组件及处理方式也越来越繁杂，这对维护大数据稳定和持续接入新的数据需求带来了挑战，数据团队应持续优化数据平台架构和开发流程，以满足企业数据集成周期短，数据质量高的需求。</p>
+<h3 id="DataOps-介绍"><a href="#DataOps-介绍" class="headerlink" title="DataOps 介绍"></a>DataOps 介绍</h3><p><img src="/2022/07/21/what-dataops/dataops-introduce.jpeg" alt="data-architecture"></p>
+<blockquote>
+<p>Dataops也是在此背景下应运而生，它是一组包含人、流程和技术的体系，管理着代码、工具、基础设施和数据。</p>
+</blockquote>
+<p><strong>它借鉴Devops 的敏捷开发和持续集成思想，持续优化Data Pipeline，加速数据处理和分析的周期，提供安全合规的高质量数据服务。</strong></p>
+<p>这里可以简要提下DevOps 、DataOps 和 MLOps 之间的关系</p>
+<p><img src="/2022/07/21/what-dataops/dataops-vs.png" alt="DevOps vs DataOps vs MLOps"><br>如图上所示，三者都是基于敏捷思想，自动化地持续迭代高质量的交付物。<br>DevOps 的交付物是以应用为中心的服务，DataOps 的交付是数据产品或服务，而MLOps的交付是数据模型。</p>
+<h3 id="DataOps-价值体现"><a href="#DataOps-价值体现" class="headerlink" title="DataOps 价值体现"></a>DataOps 价值体现</h3><p>DataOps 依附于大数据平台整个生命周期，分别在<strong>规划期</strong>、<strong>实施期</strong>和<strong>运营期</strong>给企业挖掘数据价值带来巨大推动作用。</p>
+<h4 id="DataOps-规划期"><a href="#DataOps-规划期" class="headerlink" title="DataOps 规划期"></a>DataOps 规划期</h4><p>目的：结合企业数字化进程、当前数据平台架构和述求进行深度定制，设计规划可扩展易维护的大数据平台架构。<br>以DataOps 为切入点，实施以下活动：</p>
+<ol>
+<li>结合源系统和业务分析需求，review 数据架构演进路线，识别风险点；如数据处理架构中单点问题，数据依赖和故障处理流程；</li>
+<li>结合数据量存量与增量、处理频率等，规划节点数量、配置和服务分布，使资源高效利用；</li>
+<li>结合大数据平台架构选型和数据流，设计完整监控体系。</li>
+<li>结合数据安全和合规性要求，设计规划包含data pipeline、平台运维和数据服务等相关的大数据平台安全体系</li>
+</ol>
+<p>通过以上Actions，为企业构建大数据平台，提前识别风险，预留可扩展空间，给落地大数据平台，加速实现数据价值提供指导方向。</p>
+<h4 id="DataOps-基础设施建设优化"><a href="#DataOps-基础设施建设优化" class="headerlink" title="DataOps - 基础设施建设优化"></a>DataOps - 基础设施建设优化</h4><p>众所周知，大数据平台的稳定可靠是加速数据价值实现的基石。在此阶段，Dataops 团队将提供大数据集群安装部署和优化调试服务，为数据开发保驾护航，提供稳定可靠的平台使用。</p>
+<ol>
+<li>定制化安装部署大数据平台，联调各组件，验证可用性</li>
+<li>关键组件高可用配置及验证</li>
+<li>集群与依赖服务 监控告警配置</li>
+<li>大数据组件 监控告警配置</li>
+<li>组件配置调优（参数调优，日志策略等）</li>
+<li>统一权限配置链路，端到端的数据安全实践</li>
+</ol>
+<p>集群优化：</p>
+<ol>
+<li>检查漏掉必要监控告警</li>
+<li>日常巡检和月度报告</li>
+<li>组件高可用和监控链路review</li>
+</ol>
+<h4 id="DataOps-Data-Pileline"><a href="#DataOps-Data-Pileline" class="headerlink" title="DataOps - Data Pileline"></a>DataOps - Data Pileline</h4><p>此阶段是大数据平台生命周期的重要价值体现，高效稳定的接入源系统，给企业带来数据价值。在此过程中DataOps 通过不断优化和管理<strong>代码、工具、基础设施和数据</strong>，逐步建立完善的Data Pipeline，加速数据价值落地过程。</p>
+<p><img src="/2022/07/21/what-dataops/dataops-process.jpg" alt="DataOps Process"></p>
+<p>上图展示了DataOps 的流程和相关技术，在不同的企业中，实现DataOps 流程所使用的工具和组件不尽相同。但基本目标是一致的，使Data Pipeline <strong>可重用，自动化和高质量</strong>。</p>
+<p><strong>标准DataOps 流程的特性:</strong></p>
+<ol>
+<li>易扩展，可复用</li>
+<li>统一的监控告警链路</li>
+<li>数据质量校验</li>
+<li>完善的异常处理流程</li>
+</ol>
+<h4 id="易扩展，可复用"><a href="#易扩展，可复用" class="headerlink" title="易扩展，可复用"></a>易扩展，可复用</h4><p>DataOps 的源头是数据源系统，而终点是数据产品和服务。对大型企业来讲，数据源系统种类繁多，业务接入场景纷杂以及需求的数据产品和服务也不尽相同，这时候给Dataops 带来的挑战也较大，在实施DataOps 时需要考虑ETL 代码和工具流程上支持多种业务场景和需求，使之易扩展和可复用。</p>
+<ol>
+<li>便捷的支持多种源系统类型的数据集成，缩短数据接入时间</li>
+<li>数据平台提供的数据产品和服务易复用</li>
+<li>支持多种环境（Local,Uat,Prod）开发测试和自动部署</li>
+</ol>
+<h4 id="统一监控告警"><a href="#统一监控告警" class="headerlink" title="统一监控告警"></a>统一监控告警</h4><p>在任何Ops 流程中，监控和告警都是重要手段，对于DataOps 来讲，尤其必要。不同于应用开发，代码覆盖逻辑分支，在数据开发中需要更加关注数据情况，然而依然很难枚举和Cover 所有业务数据场景，因此完善的监控告警机制是DataOps 保障任务稳定和数据质量的强有力手段。<br>统一监控告警需要满足以下条件：</p>
+<ol>
+<li>任务发布后自动接入持续监控，且可以配置自定义监控项（比如）</li>
+<li>监控项：任务执行数据量，执行时长，任务状态，任务失败标签等</li>
+<li>任务分级告警，发送漏斗警报，进入故障处理流程；告警前重试，及时处理</li>
+<li>统一监控门户，汇总统计，做审计</li>
+</ol>
+<h4 id="异常处理流程"><a href="#异常处理流程" class="headerlink" title="异常处理流程"></a>异常处理流程</h4><p>流程优化；每日值班；集群层面异常</p>
+<ol>
+<li>任务失败可以触发异常响应流程</li>
+<li>故障分级，故障报告和故障复盘</li>
+<li>规范的日志汇集，完整清晰的troubleshooting路径</li>
+</ol>
+<h4 id="数据质量校验"><a href="#数据质量校验" class="headerlink" title="数据质量校验"></a>数据质量校验</h4><p>质量问题特点：</p>
+<ol>
+<li>数据部门晚于业务方发现数据异常，被投诉才发现问题</li>
+<li>出问题后，数据部门无法快速定位数据异常的根源，排查用了较长时间</li>
+<li>故障出现在数据加工链路的上游顶端，出现问题没有第一时间报警处理，导致问题修复时，所有下游链路的任务都要运行，修复时间成本高</li>
+</ol>
+<p>质量问题根源：</p>
+<ol>
+<li>业务源系统变更；表结构，源系统环境，约定的数据格式 变更</li>
+<li>数据开发bug；任务发布，代码中引用的测试库未修改为线上库，导致污染线上数据；代码中使用固定分区；代码忽略异常，数据错误；配置异常，没有设置好依赖，输入数据不完整，下游数据产出错误；</li>
+<li>物理资源不足；集群资源共享，多租户下资源分配协调问题。</li>
+<li>基础设施不稳定。</li>
+</ol>
+<p>针对数据质量问题，需要做到<strong>早发现早恢复</strong>。</p>
+<p>为此，需要建立完善的数据质量校验体系：</p>
+<ul>
+<li>业务数据探查，对齐业务认知，确定校验规则；</li>
+<li>在数据处理过程中，设置好调度依赖和数据依赖，确保数据完整性和准确性；</li>
+<li>数据产出，任务结束后对结果进行扫描计算，判断是否符合预期，根据提前设置强弱的检查规则，触发不同的处理流程。</li>
+</ul>
+<h4 id="DataOps-体系建设助力数据价值落地"><a href="#DataOps-体系建设助力数据价值落地" class="headerlink" title="DataOps 体系建设助力数据价值落地"></a>DataOps 体系建设助力数据价值落地</h4><p>解决数据平台实施的几个问题：</p>
+<ol>
+<li>分布式大数据平台稳定性差 - 避免单点，及时监控与告警，架构调优；</li>
+<li>数据质量问题频发 - 结合业务场景，提前做好质量探查、数据校验和监控告警；</li>
+<li>数据开放，安全合规 - 集群安全设施、完整的权限流程和数据目录和自服务；</li>
+<li>新手快速接入数据及数据处理 - 自动化、易扩展、可复用的Data Pipeline，统一的监控告警体系。</li>
+</ol>
+<p>通过以上体系建设，可以让data pipeline 的开发更加严谨，可重用和自动化，可以加速数据集成、分析到数据价值体现的过程。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文介绍了dataops 的诞生背景、定义、目标使命与实践建议，dataops 是在数据平台落地、后续迭代和持续运营的最佳保障。</p>
+<p>DataOps可以帮助数据团队从产生数据孤岛、数据积压和无休止的质量控制问题的环境中解脱出来，进入敏捷、自动化和加速的数据供应链环境，从而持续提效并为企业带来更多价值。</p>
+<p>如还未在数据平台实施以上DataOps 体系实践的企业，可以考虑迭代优化自己的数据平台。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://www.altexsoft.com/blog/dataops-essentials/">DataOps: Adjusting DevOps for Analytics Product Development</a></p>
+<p><a target="_blank" rel="noopener" href="https://medium.com/@kshi/dataops-%E4%BC%81%E4%B8%9A%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%8F%B0%E7%9A%84%E6%A0%B8%E5%BF%83%E5%BA%95%E5%BA%A7-661d1199d07b">DataOps：企业数据中台的核心底座</a></p>
+<p><a target="_blank" rel="noopener" href="https://insights.thoughtworks.cn/distributed-data-platform-data-mesh/">分布式数据平台Data Mesh</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.eckerson.com/articles/diving-into-dataops-the-underbelly-of-modern-data-pipelines">Diving into DataOps: The Underbelly of Modern Data Pipelines</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.valdas.blog/2019/04/17/data-ops/">A glimpse into DataOps</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2022/07/21/what-dataops/" title="DataOps 体系化">http://example.com/2022/07/21/what-dataops/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DataOps/" rel="tag"># DataOps</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/28/dataops-cdp-permission/" rel="prev" title="企业私有云大数据平台权限管理分享（二）">
+      <i class="fa fa-chevron-left"></i> 企业私有云大数据平台权限管理分享（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/20/ml-ray-introduction/" rel="next" title="聊聊通用分布式计算框架Ray">
+      聊聊通用分布式计算框架Ray <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DataOps-%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">DataOps 介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DataOps-%E4%BB%B7%E5%80%BC%E4%BD%93%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">DataOps 价值体现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DataOps-%E8%A7%84%E5%88%92%E6%9C%9F"><span class="nav-number">4.1.</span> <span class="nav-text">DataOps 规划期</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DataOps-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD%E5%BB%BA%E8%AE%BE%E4%BC%98%E5%8C%96"><span class="nav-number">4.2.</span> <span class="nav-text">DataOps - 基础设施建设优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DataOps-Data-Pileline"><span class="nav-number">4.3.</span> <span class="nav-text">DataOps - Data Pileline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%98%93%E6%89%A9%E5%B1%95%EF%BC%8C%E5%8F%AF%E5%A4%8D%E7%94%A8"><span class="nav-number">4.4.</span> <span class="nav-text">易扩展，可复用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%9F%E4%B8%80%E7%9B%91%E6%8E%A7%E5%91%8A%E8%AD%A6"><span class="nav-number">4.5.</span> <span class="nav-text">统一监控告警</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="nav-number">4.6.</span> <span class="nav-text">异常处理流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F%E6%A0%A1%E9%AA%8C"><span class="nav-number">4.7.</span> <span class="nav-text">数据质量校验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DataOps-%E4%BD%93%E7%B3%BB%E5%BB%BA%E8%AE%BE%E5%8A%A9%E5%8A%9B%E6%95%B0%E6%8D%AE%E4%BB%B7%E5%80%BC%E8%90%BD%E5%9C%B0"><span class="nav-number">4.8.</span> <span class="nav-text">DataOps 体系建设助力数据价值落地</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : 'a5e1a853a0c4540a9d608428ab8a8d9e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

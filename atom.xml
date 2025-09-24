@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>华少的博客</title>
+  
+  <subtitle>谁的头顶上没有灰尘，谁的肩上没有过齿痕</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2025-09-24T07:47:00.244Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>洛上倾城华少</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AI相关认证经验小结</title>
+    <link href="http://example.com/2025/09/23/AI-Related-Certification-Experience/"/>
+    <id>http://example.com/2025/09/23/AI-Related-Certification-Experience/</id>
+    <published>2025-09-23T11:22:39.000Z</published>
+    <updated>2025-09-24T07:47:00.244Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了几个AI 相关的证书，有以下几个认证：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Microsoft Certified: Azure Data Scientist Associate（DP100）&lt;/strong&gt;[&lt;a href=&quot;https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification%5D&quot;&gt;https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification]&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Databricks Certified Machine Learning Professional&lt;/strong&gt; [&lt;a href=&quot;https://www.databricks.com/learn/certification/machine-learning-professional]&quot;&gt;https://www.databricks.com/learn/certification/machine-learning-professional]&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Databricks Certified Generative AI Engineer Associate&lt;/strong&gt; [&lt;a href=&quot;https://www.databricks.com/learn/certification/genai-engineer-associate]&quot;&gt;https://www.databricks.com/learn/certification/genai-engineer-associate]&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;以上的证书主要涉及Azure 提供的ML studio 和Databricks 的ML Workspace，认证考试的内容大部分与相关套件的使用相关。由于最近几年AI 技术迭代以及相关云厂商更新也比较快，这里我根据当时自己考试的准备及遇到的一些题目进行总结。以上的考试题都会不断的根据现有AI 技术的更新而调整，请务必查看相关考试的guide。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="AI" scheme="http://example.com/tags/AI/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>RAG 观察</title>
+    <link href="http://example.com/2024/04/03/LLM-RAG-introduction/"/>
+    <id>http://example.com/2024/04/03/LLM-RAG-introduction/</id>
+    <published>2024-04-03T02:25:59.000Z</published>
+    <updated>2025-01-02T07:19:26.195Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;近些年，AI 领域蓬勃发展，在NLP 领域，由之前的LSTM、Transformer 到后来的BERT、GPT等大规模预训练模型，NLP 技术不断突破，为下游多种应用场景带来了革新。然而,传统的语言模型存在一些固有的局限性。它们主要依赖于在大规模文本数据上进行预训练,学习到的知识和语言理解能力都蕴含在模型参数中。这导致模型难以适应新的&lt;strong&gt;知识和领域，泛化能力有限&lt;/strong&gt;。此外,当需要根据外部知识进行推理和问答时，传统的语言模型往往捉襟见肘。&lt;/p&gt;
+&lt;p&gt;为了克服这些局限性，研究者们提出了一种新的范式——RAG(Retrieval-Augmented Generation)，即检索增强生成。RAG模型通过融合知识检索和语言生成两个阶段，实现了更加强大和灵活的自然语言处理能力。与传统的语言模型不同，&lt;strong&gt;RAG可以根据输入的问题或上下文，实时检索相关的外部知识，并利用这些知识来指导答案的生成。&lt;/strong&gt;这使得RAG模型能够利用海量的结构化和非结构化知识，动态适应不同的任务需求。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>分布式框架Ray在Databricks上机器学习模型开发的实践</title>
+    <link href="http://example.com/2024/02/20/databricks-ray-ml/"/>
+    <id>http://example.com/2024/02/20/databricks-ray-ml/</id>
+    <published>2024-02-20T09:41:47.000Z</published>
+    <updated>2025-01-02T07:19:26.197Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;在当今快速发展的人工智能领域，构建高效、可扩展的机器学习模型是至关重要的。随着云计算平台的普及和分布式计算框架的发展，企业智能应用开发者越来越多地将注意力集中在如何利用这些技术来提高机器学习模型的开发效率和性能。&lt;/p&gt;
+&lt;p&gt;现如今，云计算平台提供了很多端到端的功能和基础设施管理，以帮助企业在机器学习开发流程中实现合规性、风险控制以及成本监控等，使开发者更加关注模型研发以提升整体效率。比如AWS 的&lt;strong&gt;Sagemaker&lt;/strong&gt;，Azure的&lt;strong&gt;Machine Learning Studio&lt;/strong&gt;和GCP的&lt;strong&gt;AI Platform&lt;/strong&gt;等，而&lt;a href=&quot;https://www.databricks.com/&quot;&gt;Databircks&lt;/a&gt; 提供可以基于多云基础设施的统一Data &amp;amp; AI 工具平台。&lt;/p&gt;
+&lt;p&gt;而新兴的开源通用分布式计算框架Ray 也在不断演进，它在统一底层框架的基础上提供了丰富的&lt;a href=&quot;https://docs.ray.io/en/latest/ray-overview/index.html&quot;&gt;AI库&lt;/a&gt;。我们可以轻松的使用该上层库在任何机器或者云平台上构建机器学习开发流程。&lt;/p&gt;
+&lt;p&gt;在本文中，我将介绍分布式计算框架Ray 在Databricks平台上进行机器学习模型开发的项目实践。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Machine Learning" scheme="http://example.com/tags/Machine-Learning/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>聊聊通用分布式计算框架Ray</title>
+    <link href="http://example.com/2023/12/20/ml-ray-introduction/"/>
+    <id>http://example.com/2023/12/20/ml-ray-introduction/</id>
+    <published>2023-12-20T10:40:41.000Z</published>
+    <updated>2025-09-24T07:45:25.196Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;据 OpenAI 的公开资料显示，近年爆火的 ChatGPT，是基于 Ray 进行的包括预训练、Fine Tune、强化学习等 ChatGPT 的训练。那让我们来聊聊Ray 这个框架吧。&lt;/p&gt;
+&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;实际上，在2015年秋天，UC.Berkeley的 Ion Stoica教授给研究生讲系统课时，Robert和Philip 两个机器学习的学生正在做一个关于数据并行机器学习的训练，最初使用了Spark，并进行了修改叫做SparkNet，后来发现Spark 太死板，在做强化学习时，需要的计算模型非常复杂，有嵌套并行的内容发现Spark 并不擅长。于是他们研发了分布式执行引擎Ray ，主要面向未来交互式的AI，提供任务并行和高速的任务调度，并在2017年发表了论文&lt;a href=&quot;https://arxiv.org/pdf/1712.05889.pdf&quot;&gt;《Ray: A Distributed Framework for Emerging AI Applications》&lt;/a&gt;。不同于Spark 这样的BSP 计算引擎，同一stage内的任务无法相互通信，而Ray 更加底层，更加灵活，一个任务可以启动其他任务或启动actor，它们可以相互通信，还实现了全局控制状态和调度器。&lt;/p&gt;
+&lt;p&gt;基于&lt;a href=&quot;https://github.com/ray-project/ray&quot;&gt;Ray&lt;/a&gt; 这项开源工作，在2019年12月，该论文的一作、二作和Ion Stoica 教授以及Michael.Jordan 教授创立了&lt;a href=&quot;https://www.anyscale.com/&quot;&gt;Anyscale&lt;/a&gt;，提供托管Ray 的服务。值得注意的是，Ion Stoica教授也是Databricks(托管Spark)的原CEO。&lt;/p&gt;
+&lt;p&gt;如今，Ray 社区非常活跃，github上已经有29.3k ⭐️，很多大厂如国外的OpenAI、Uber、Shopify等，国内的有蚂蚁集团、字节等都在生产环境广泛使用。Ray峰会&lt;a href=&quot;https://raysummit.anyscale.com/&quot;&gt;Ray Summit&lt;/a&gt;参加的人数也越来越多，更多的公司采用Ray 作为分布式计算的框架。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Machine Learning" scheme="http://example.com/tags/Machine-Learning/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>DataOps 体系化</title>
+    <link href="http://example.com/2022/07/21/what-dataops/"/>
+    <id>http://example.com/2022/07/21/what-dataops/</id>
+    <published>2022-07-21T09:56:15.000Z</published>
+    <updated>2025-01-02T07:19:26.212Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;本文从企业建设大数据平台背景出发，介绍DataOps 概念目标和体系化实践建议，给企业大数据平台建设和优化提供一些借鉴。&lt;/p&gt;
+&lt;h3 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h3&gt;&lt;p&gt;近年来，数据平台在企业数字化转型过程起着越来越重要的作用，给企业的战略分析和业务推动带来强有力的数据支撑，可以快速、高质量地提供数据服务，从而实现数据价值。&lt;/p&gt;
+&lt;p&gt;然而随着企业对数据集成和分析的需求不断增长，数据源种类多，数据工具和架构复杂，对数据平台的能力要求也越来越高。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="DataOps" scheme="http://example.com/tags/DataOps/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>企业私有云大数据平台权限管理分享（二）</title>
+    <link href="http://example.com/2022/05/28/dataops-cdp-permission/"/>
+    <id>http://example.com/2022/05/28/dataops-cdp-permission/</id>
+    <published>2022-05-28T09:51:44.000Z</published>
+    <updated>2025-01-02T07:19:26.199Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;上文介绍了大数据平台资源权限管理框架Ranger 的原理和企业权限管理实践，然而企业大数据平台的权限管理应该包含这个数据开发、运维链路，尤其是在平台&lt;strong&gt;多租户&lt;/strong&gt;使用的场景下，需要格外注意是否有权限管控不当问题。本文将结合CDP(Cloudera Private Platform) 平台组件，介绍平台大数据开发、运维链路上的权限管控实践。&lt;/p&gt;
+&lt;h3 id=&quot;多租户场景需求&quot;&gt;&lt;a href=&quot;#多租户场景需求&quot; class=&quot;headerlink&quot; title=&quot;多租户场景需求&quot;&gt;&lt;/a&gt;多租户场景需求&lt;/h3&gt;&lt;p&gt;在CDP 大数据平台上，有多个团队使用不同的组件，如IT 运维使用Cloudera Manager 管理大数据集群、使用Ranger 管理资源权限，多个团队使用Hue 进行ETL 任务开发和数据分析，使用Atlas 管理数据资产等。上篇中提到企业使用集中式的员工账号管理（Microsoft Active Directory），其内建Kerberos 支持，而Kerberos 也是Hadoop 生态系统中应用最广泛的用户认证管理框架。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="DataOps" scheme="http://example.com/tags/DataOps/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>企业私有云大数据平台权限管理分享（一）</title>
+    <link href="http://example.com/2022/05/18/dataops-ranger-configurations/"/>
+    <id>http://example.com/2022/05/18/dataops-ranger-configurations/</id>
+    <published>2022-05-18T09:41:47.000Z</published>
+    <updated>2025-01-02T07:19:26.201Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;近年来，越来越多的企业享受大数据平台实施带来的数据价值，也期望接入更多的企业数据及开放不同业务域的数据给不同的用户。因此，在大数据平台构建过程中，需实现完整的权限管理流程，给正确的用户以访问正确的资源权限，避免数据被窃取和被破坏。本文基于此背景，介绍大数据平台通用权限管理框架Ranger 的原理、企业级权限管理设计以及一些实践分享。希望能给大家在大数据平台权限管理落地上提供一些参考。&lt;/p&gt;
+&lt;h3 id=&quot;Ranger-原理介绍&quot;&gt;&lt;a href=&quot;#Ranger-原理介绍&quot; class=&quot;headerlink&quot; title=&quot;Ranger 原理介绍&quot;&gt;&lt;/a&gt;Ranger 原理介绍&lt;/h3&gt;&lt;p&gt;众所周知，一些常用的权限管控模型主要有:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ACL(Access Control List): 基于用户级别的权限控制；&lt;/li&gt;
+&lt;li&gt;RBAC(Role Base Access Control): 基于角色级别的权限控制；与ACL 不同的是RBAC 不用给用户单个分配权限，权限与用户之间通过角色关联；&lt;/li&gt;
+&lt;li&gt;ABAC(Attribute Base Access Control): 基于属性级别的权限控制；通过动态计算一个或者一组属性是否满足某种条件来进行权限判断，可以实现细粒度且灵活的权限控制。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="DataOps" scheme="http://example.com/tags/DataOps/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>读《周鸿祎自述：我的互联网方法论》</title>
+    <link href="http://example.com/2018/04/20/book-internet-discuss-zhou/"/>
+    <id>http://example.com/2018/04/20/book-internet-discuss-zhou/</id>
+    <published>2018-04-20T03:28:06.000Z</published>
+    <updated>2025-01-02T07:19:26.197Z</updated>
+    
+    
+    <summary type="html">&lt;h4 id=&quot;背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。&quot;&gt;&lt;a href=&quot;#背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。&quot; class=&quot;headerlink&quot; title=&quot;背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。&quot;&gt;&lt;/a&gt;背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。&lt;/h4&gt;&lt;p&gt;不得不说，这本书讲的还是非常通俗易懂的，老周从自己的做360的初衷、过程及遇到的问题和解决方式思维，多个角度分析了自己在互联网这块的认识和简介。&lt;strong&gt;简单来讲就是，以免费带量，靠增值服务来赚钱；用户至上，体验为王。&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="阅读" scheme="http://example.com/categories/%E9%98%85%E8%AF%BB/"/>
+    
+    
+    <category term="互联网" scheme="http://example.com/tags/%E4%BA%92%E8%81%94%E7%BD%91/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS近期知识总结</title>
+    <link href="http://example.com/2017/12/20/iOS-Learn-Notes/"/>
+    <id>http://example.com/2017/12/20/iOS-Learn-Notes/</id>
+    <published>2017-12-20T03:15:00.000Z</published>
+    <updated>2025-01-02T07:19:26.206Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;1-APP之间通信方式有哪些&quot;&gt;&lt;a href=&quot;#1-APP之间通信方式有哪些&quot; class=&quot;headerlink&quot; title=&quot;1.APP之间通信方式有哪些&quot;&gt;&lt;/a&gt;1.APP之间通信方式有哪些&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;URL Scheme&lt;br&gt;（在info.plist中配置LSApplicationQueriesSchemes，指定目标app的scheme，然后在目标app的info.plist中配置好URL types）场景：分享，支付等&lt;/li&gt;
+&lt;li&gt;Keychain&lt;br&gt;本质是sqlite数据库，独立每个app的沙盒之外，即使删除app，keychain中的信息还存在&lt;br&gt;特点：不同app之间需要通过keychain access groups才行，同一个teamID&lt;br&gt;场景：用户登录信息保存，同一平台上多个app之间实现统一账户登录&lt;/li&gt;
+&lt;li&gt;UIPasteboard&lt;br&gt;系统剪切板 场景：淘宝口令&lt;/li&gt;
+&lt;li&gt;UIDocumentInteractionController 系统级别，同设备上app之间的共享文档，以及文档预览，打印，发邮件和复制等&lt;/li&gt;
+&lt;li&gt;local socket&lt;br&gt;app1在本地端口port1234建立socket tcp的bind和listen，APP2在同一端口port1234 发起tcp的connect连接&lt;br&gt;场景：某个App1具有特殊的能力，比如能够跟硬件进行通信，在硬件上处理相关数据。而App2则没有这个能力，但是它能给App1提供相关的数据，这样APP2跟App1建立本地socket连接，传输数据到App1，然后App1在把数据传给硬件进行处理。&lt;br&gt;缺陷：需要后台运行，因此，系统在任意时刻只有一个app在前台运行，那么就需要通信的另一方具备后台运行权限，类似导航，音乐，蓝牙通信类&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>GCP Shadowsocks</title>
+    <link href="http://example.com/2017/11/24/GCP-Shadowsocks/"/>
+    <id>http://example.com/2017/11/24/GCP-Shadowsocks/</id>
+    <published>2017-11-24T03:06:39.000Z</published>
+    <updated>2025-01-02T07:19:26.190Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt; &lt;/p&gt;
+&lt;h2 id=&quot;一键式通过GCP自建科学上网服务&quot;&gt;&lt;a href=&quot;#一键式通过GCP自建科学上网服务&quot; class=&quot;headerlink&quot; title=&quot;一键式通过GCP自建科学上网服务&quot;&gt;&lt;/a&gt;一键式通过GCP自建科学上网服务&lt;/h2&gt;&lt;h3 id=&quot;1-前期准备&quot;&gt;&lt;a href=&quot;#1-前期准备&quot; class=&quot;headerlink&quot; title=&quot;1.前期准备&quot;&gt;&lt;/a&gt;1.前期准备&lt;/h3&gt;&lt;p&gt;需要准备一张visa卡（本人使用的是招行visa信用卡），在google cloud platform注册账号信息&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;说明：GCP新用户有免费一年的使用时长，配额是300美金&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&quot;2-在GCP的控制台上创建Compute-Engine的VM实例&quot;&gt;&lt;a href=&quot;#2-在GCP的控制台上创建Compute-Engine的VM实例&quot; class=&quot;headerlink&quot; title=&quot;2.在GCP的控制台上创建Compute Engine的VM实例&quot;&gt;&lt;/a&gt;2.在GCP的控制台上创建Compute Engine的VM实例&lt;/h3&gt;&lt;h4 id=&quot;如图创建&quot;&gt;&lt;a href=&quot;#如图创建&quot; class=&quot;headerlink&quot; title=&quot;如图创建&quot;&gt;&lt;/a&gt;如图创建&lt;/h4&gt;</summary>
+    
+    
+    
+    <category term="Network" scheme="http://example.com/categories/Network/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>WKWebview Tips</title>
+    <link href="http://example.com/2017/04/24/iOS-WKWebview-Tips/"/>
+    <id>http://example.com/2017/04/24/iOS-WKWebview-Tips/</id>
+    <published>2017-04-24T02:54:44.000Z</published>
+    <updated>2025-01-02T07:19:26.208Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;WKWebview-踩坑之旅&quot;&gt;&lt;a href=&quot;#WKWebview-踩坑之旅&quot; class=&quot;headerlink&quot; title=&quot;WKWebview 踩坑之旅&quot;&gt;&lt;/a&gt;WKWebview 踩坑之旅&lt;/h2&gt;&lt;h3 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h3&gt;&lt;p&gt;关于iOS 8后出来的WKWebview的简介，及对比UIWebview的优势 就不再做赘述了。可以参考&lt;br&gt;&lt;a href=&quot;http://nshipster.cn/wkwebkit/&quot;&gt;nshipster介绍WKWebview&lt;/a&gt;&lt;br&gt;学习WKWebview需研究&lt;a href=&quot;https://github.com/WebKit/webkit&quot;&gt;源码&lt;/a&gt;，可以调试下miniBrowser项目&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS应用脱壳和重签名</title>
+    <link href="http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/"/>
+    <id>http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/</id>
+    <published>2016-11-05T02:50:48.000Z</published>
+    <updated>2025-01-02T07:19:26.208Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;前期干货&quot;&gt;&lt;a href=&quot;#前期干货&quot; class=&quot;headerlink&quot; title=&quot;前期干货&quot;&gt;&lt;/a&gt;前期干货&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;http://www.mottoin.com/92530.html&quot;&gt;iOS破壳&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://blog.csdn.net/oyzhx/article/details/38339129&quot;&gt;用dumpdecrypted给App砸壳&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.cnblogs.com/ludashi/p/5725743.html&quot;&gt;iOS逆向工程之给App脱壳&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://testerhome.com/topics/4558&quot;&gt;给微信加 hook 尝试记录&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.jianshu.com/p/189afbe3b429&quot;&gt;一步一步实现iOS微信自动抢红包(非越狱)&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&quot;工具：&quot;&gt;&lt;a href=&quot;#工具：&quot; class=&quot;headerlink&quot; title=&quot;工具：&quot;&gt;&lt;/a&gt;工具：&lt;/h3&gt;&lt;p&gt;hopper：对脱壳app进行反汇编、反编译 可以分析app二进制文件&lt;br&gt;dumpdecrypted：用于脱壳&lt;br&gt;class-dump：对脱壳app 导出头文件&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS RunLoop理解及实践场景分析</title>
+    <link href="http://example.com/2016/09/14/iOS-RunLoop-Learn/"/>
+    <id>http://example.com/2016/09/14/iOS-RunLoop-Learn/</id>
+    <published>2016-09-14T02:37:53.000Z</published>
+    <updated>2025-01-02T07:19:26.207Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt; &lt;/p&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;线程知识&lt;/strong&gt;：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;线程是任务分解成不同的工作单元分配给线程去执行,解决了多任务并发执行的问题,提高了系统性能。在现代交互式系统中,还存在大量的未知不确定的异步事件,这时候线程是一直是出于等待状态的,直到有事件发生才会唤醒线程去执行,执行完成后系统又恢复到以前的等待状态。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;如何控制线程在等待和执行任务状态间无缝切换,就引入了RunLoop的概念。&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS 网络层架构设计与实现</title>
+    <link href="http://example.com/2016/03/20/iOS-network-design/"/>
+    <id>http://example.com/2016/03/20/iOS-network-design/</id>
+    <published>2016-03-20T02:28:29.000Z</published>
+    <updated>2025-01-02T07:19:26.208Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;客户端网络层交互流程:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;获取参数，统一配置&lt;/li&gt;
+&lt;li&gt;根据API配置公共参数&lt;/li&gt;
+&lt;li&gt;构造网络请求&lt;/li&gt;
+&lt;li&gt;发送网络请求&lt;/li&gt;
+&lt;li&gt;获取返回结果&lt;/li&gt;
+&lt;li&gt;展示数据&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;注：此处还应该有个 &lt;code&gt;数据持久化&lt;/code&gt; 流程，因项目业务层逻辑及存储方案各不相同，本篇中不展开介绍&lt;br&gt;另：本篇幅中暂时只涉及到HTTP的请求，TCP及UDP的网络交互处理又不一样，需要考虑的也不相同（如：TCP考虑包顺序处理及回调分发问题，UDP考虑丢包及无序处理）&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>非典型程序猿羊年总结</title>
+    <link href="http://example.com/2016/02/05/annual-summary-of-programmer-2015/"/>
+    <id>http://example.com/2016/02/05/annual-summary-of-programmer-2015/</id>
+    <published>2016-02-05T14:57:46.000Z</published>
+    <updated>2025-01-02T07:19:26.197Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;工作&quot;&gt;&lt;a href=&quot;#工作&quot; class=&quot;headerlink&quot; title=&quot;工作&quot;&gt;&lt;/a&gt;工作&lt;/h2&gt;&lt;p&gt;14年底到15年年初的工作一言难尽，自己从嵌入式转到iOS开发，新的平台新的部门都需要重新学习和提高，压力可想而知。年初终于在我们大C司定岗，正式成为一个iOS开发，非常感谢我的三位iOS启蒙导师（李思哥哥、陆爷、彦群），他们帮助我跨过前期的障碍，也看到移动开发技术的未来。总体来讲，自己看到既年轻又活跃的天空，跟着团队也逐步认识到了一个创业团队的磨合期和碰撞期。&lt;strong&gt;风云变幻，莫笑少年愁&lt;/strong&gt;。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="生活" scheme="http://example.com/categories/%E7%94%9F%E6%B4%BB/"/>
+    
+    
+    <category term="总结" scheme="http://example.com/tags/%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS GCD 死锁大作战</title>
+    <link href="http://example.com/2016/01/25/iOS-GCD-deadlock/"/>
+    <id>http://example.com/2016/01/25/iOS-GCD-deadlock/</id>
+    <published>2016-01-25T14:36:13.000Z</published>
+    <updated>2025-01-02T07:19:26.205Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;什么是死锁&quot;&gt;&lt;a href=&quot;#什么是死锁&quot; class=&quot;headerlink&quot; title=&quot;什么是死锁&quot;&gt;&lt;/a&gt;什么是死锁&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Deadlock&quot;&gt;死锁（deadlock)&lt;/a&gt; 通常是当多个线程在相互等待着对方的结束时，就会发生死锁，这时程序可能会被卡住。此时就导致了deadlock！&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Change Your App Icon at build time</title>
+    <link href="http://example.com/2016/01/06/Change-Your-App-Icon-at-build-time/"/>
+    <id>http://example.com/2016/01/06/Change-Your-App-Icon-at-build-time/</id>
+    <published>2016-01-06T14:07:38.000Z</published>
+    <updated>2025-01-02T07:19:26.190Z</updated>
+    
+    
+    <summary type="html">&lt;h2 id=&quot;需求背景&quot;&gt;&lt;a href=&quot;#需求背景&quot; class=&quot;headerlink&quot; title=&quot;需求背景&quot;&gt;&lt;/a&gt;需求背景&lt;/h2&gt;&lt;p&gt;为了&lt;strong&gt;区分线上版本、测试版本以及调试版本&lt;/strong&gt;，我们在开发过程中一般会修改bunlde Id以便在一个设备上安装不同版本的App。然而问题来了，如何快速区分出桌面上的App是什么版本呢？最直观的就是&lt;strong&gt;改变App图标&lt;/strong&gt;，达到显而易见的目的。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="iOS" scheme="http://example.com/tags/iOS/"/>
+    
+  </entry>
+  
+</feed>

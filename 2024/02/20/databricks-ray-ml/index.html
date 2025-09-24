@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言在当今快速发展的人工智能领域，构建高效、可扩展的机器学习模型是至关重要的。随着云计算平台的普及和分布式计算框架的发展，企业智能应用开发者越来越多地将注意力集中在如何利用这些技术来提高机器学习模型的开发效率和性能。 现如今，云计算平台提供了很多端到端的功能和基础设施管理，以帮助企业在机器学习开发流程中实现合规性、风险控制以及成本监控等，使开发者更加关注模型研发以提升整体效率。比如AWS 的Sag">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式框架Ray在Databricks上机器学习模型开发的实践">
+<meta property="og:url" content="http://example.com/2024/02/20/databricks-ray-ml/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言在当今快速发展的人工智能领域，构建高效、可扩展的机器学习模型是至关重要的。随着云计算平台的普及和分布式计算框架的发展，企业智能应用开发者越来越多地将注意力集中在如何利用这些技术来提高机器学习模型的开发效率和性能。 现如今，云计算平台提供了很多端到端的功能和基础设施管理，以帮助企业在机器学习开发流程中实现合规性、风险控制以及成本监控等，使开发者更加关注模型研发以提升整体效率。比如AWS 的Sag">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2024/02/20/databricks-ray-ml/databricks-ml-platform.jpeg">
+<meta property="og:image" content="http://example.com/2024/02/20/databricks-ray-ml/databricks-data-feature.jpg">
+<meta property="og:image" content="http://example.com/2024/02/20/databricks-ray-ml/ray-train-tuner.png">
+<meta property="og:image" content="http://example.com/2024/02/20/databricks-ray-ml/databricks-cluster-gpus.jpg">
+<meta property="article:published_time" content="2024-02-20T09:41:47.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.197Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2024/02/20/databricks-ray-ml/databricks-ml-platform.jpeg">
+
+<link rel="canonical" href="http://example.com/2024/02/20/databricks-ray-ml/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>分布式框架Ray在Databricks上机器学习模型开发的实践 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/20/databricks-ray-ml/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式框架Ray在Databricks上机器学习模型开发的实践
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-02-20 17:41:47" itemprop="dateCreated datePublished" datetime="2024-02-20T17:41:47+08:00">2024-02-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在当今快速发展的人工智能领域，构建高效、可扩展的机器学习模型是至关重要的。随着云计算平台的普及和分布式计算框架的发展，企业智能应用开发者越来越多地将注意力集中在如何利用这些技术来提高机器学习模型的开发效率和性能。</p>
+<p>现如今，云计算平台提供了很多端到端的功能和基础设施管理，以帮助企业在机器学习开发流程中实现合规性、风险控制以及成本监控等，使开发者更加关注模型研发以提升整体效率。比如AWS 的<strong>Sagemaker</strong>，Azure的<strong>Machine Learning Studio</strong>和GCP的<strong>AI Platform</strong>等，而<a target="_blank" rel="noopener" href="https://www.databricks.com/">Databircks</a> 提供可以基于多云基础设施的统一Data &amp; AI 工具平台。</p>
+<p>而新兴的开源通用分布式计算框架Ray 也在不断演进，它在统一底层框架的基础上提供了丰富的<a target="_blank" rel="noopener" href="https://docs.ray.io/en/latest/ray-overview/index.html">AI库</a>。我们可以轻松的使用该上层库在任何机器或者云平台上构建机器学习开发流程。</p>
+<p>在本文中，我将介绍分布式计算框架Ray 在Databricks平台上进行机器学习模型开发的项目实践。</p>
+<span id="more"></span>
+
+<h3 id="Machine-Learning-in-Databricks"><a href="#Machine-Learning-in-Databricks" class="headerlink" title="Machine Learning in Databricks"></a>Machine Learning in Databricks</h3><p>Databricks 为机器学习模型开发提供了一系列的工具与功能：</p>
+<ol>
+<li>Databricks Runtime：是一个经过优化的运行时环境，支持常用的机器学习框架和库，如TensorFlow、PyTorch和Scikit-learn等，在项目上就是使用13.3 LTS ML (includes Apache Spark 3.4.1, Scala 2.12)版本，其中还包含模型可解释库SHAP等第三方分析库；同时提供高效的分布式计算和存储，可以基于此为模型训练提供稳定和高性能的环境。</li>
+<li>MLFlow：是一个开源的Machine Learning Lifecycle Platform, 也是由Databricks 发起和主导开发的。能帮助开发者进行model tracking和registry。</li>
+<li>Databricks Delta：是databricks 提供的高性能数据湖解决方案，结合了数据仓库的可靠性和数据湖的灵活性，且提供了事务性ACID 操作，自动数据版本控制、增量数据湖更新等功能，使得数据管理和处理更加简单可靠，对比DVC(<a target="_blank" rel="noopener" href="https://dvc.org/">https://dvc.org/</a>) 在管理非结构化数据集时有明显优势。</li>
+<li>Databricks Workflow: 允许用户在Databricks 上自动执行任务流的调度器，可以自定义脚本执行数据处理、模型训练、评估和部署等任务。类似Airflow 等调度器，它也可以配置作业的调度时间，触发条件和执行环境等，是实现CD4ML(<a target="_blank" rel="noopener" href="https://martinfowler.com/articles/cd4ml.html">https://martinfowler.com/articles/cd4ml.html</a>) 流程的关键</li>
+<li>Databricks AutoML：是Databricks提供的自动化机器学习功能，可以自动化的进行特征工程、模型选择和调优，以帮助用户快速构建和优化机器学习模型</li>
+</ol>
+<p>我在Databricks 平台上构建了机器学习模型开发的pipeline，基于CD4ML 的理念，设计并实现了数据集版本管理、模型训练、数据与模型检测、模型管理等workflows。<br>简版架构图如下:<br><img src="/2024/02/20/databricks-ray-ml/databricks-ml-platform.jpeg" alt="databricks-ml-platform"></p>
+<p><strong>基础设施方面</strong><br>基于infrastructure as code 原则，使用Terraform 管理多个环境（sit、uat和prod）的资源，包括databricks workspace、network、access control、stroage、cluster等。</p>
+<p><strong>数据集管理方面</strong><br>使用Databricks delta table管理图像数据集，对于数据集的调整，通过delta table的版本标记来跟踪。</p>
+<p>同时使用<a target="_blank" rel="noopener" href="https://github.com/visual-layer/fastdup">Fastdup</a>进行数据集清洗，使用<a target="_blank" rel="noopener" href="https://docs.seldon.io/projects/alibi-detect/en/latest/">Alibi Detect</a> 对比线上数据和训练数据集的差异，设计实现data drift 检测流程。</p>
+<p><strong>模型开发方面</strong></p>
+<ol>
+<li>任务管理：使用Databricks CLI 创建和管理模型开发过程中的各个workflows，采用deploy code 模式，在sit 环境使用采样数据集进行功能开发，在prod上运行基于全量数据集的各个workflow.</li>
+<li>模型训练：设计支持多个超参自动选择或采样策略的AutoML 流程，利用分布式数据并行充分利用多GPU 的资源，实现自定义early stopping策略，加速训练时间，并且打通MLFlow 在模型训练过程中指标trace 和版本管理</li>
+<li>模型监控：收集线上反馈数据，检测model drift。在Databricks 平台上可以结合SQL Warehouse、Query、Alert 和Dashboard 做到模型监控数据的落地告警和可视化。</li>
+<li>模型可解释性：Databricks ML Runtime中还集成了<a target="_blank" rel="noopener" href="https://shap.readthedocs.io/en/latest/index.html">SHAP (SHapley Additive exPlanations)</a> 这样的模型可解释性的博弈论方法库，对于一些corner case的分析带来一定的帮助。</li>
+</ol>
+<p>总体而言，结合Databricks Platform，可以快速建立高效合规的机器学习开发环境。</p>
+<h3 id="在Databricks上使用Ray-AI-Libraries"><a href="#在Databricks上使用Ray-AI-Libraries" class="headerlink" title="在Databricks上使用Ray AI Libraries"></a>在Databricks上使用Ray AI Libraries</h3><p>那大家可能会问：既然Databricks 平台提供了模型开发的端到端工具和功能，那进行机器学习模型开发为什么还使用Ray呢？</p>
+<p>实际上，进行大部分机器学习模型开发时，直接使用Databricks 平台提供的能力也是可行的，但由于项目上的数据集是图像这种非结构化数据。<br>而现有<strong>Databricks 不支持图片数据集的AutoML Experiment</strong>。</p>
+<p><img src="/2024/02/20/databricks-ray-ml/databricks-data-feature.jpg" alt="databricks data feature"></p>
+<p>众所周知，模型训练也是一个炼丹的过程。在模型训练流程中，我们通过不断的调整模型结构和超参数，以训练出一个最佳性能的模型。这个过程中使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Automated_machine_learning">AutoML</a> 方法提供模型开发效率，节省训练资源。</p>
+<p><strong>对于Ray 提供的AI库，我主要使用了Ray Train 和Ray Tune, 主要用于模型训练和参数微调。结合Databricks 平台，实现了分布式数据并行训练，自动超参调优，以及自定义提前停止策略等功能。</strong></p>
+<p><img src="/2024/02/20/databricks-ray-ml/ray-train-tuner.png" alt="ray trainer"></p>
+<p>对于分布式数据并行训练，Pytorch 提供了DDP(Distributed Data Parallel) 的实现，而Ray Trainer也对DDP 进行了兼容和封装，只需要简单几步就可以实现分布式数据并行，具体的代码可以参考这篇文章<a target="_blank" rel="noopener" href="https://docs.ray.io/en/latest/train/getting-started-pytorch.html">Ray: Get Started with Distributed Training using PyTorch</a></p>
+<p>下图是在Databricks 上使用多GPU 进行模型训练时的机器监控图:<br><img src="/2024/02/20/databricks-ray-ml/databricks-cluster-gpus.jpg" alt="databricks-cluster-gpus"></p>
+<blockquote>
+<p>值得一提的是，在大模型盛行的当下，Ray 结合DeepSpeed 提供的ZeRO 方法对模型进行数据并行和模型并行等多种显存优化的训练。</p>
+</blockquote>
+<p>对于超参数调优，Ray Tune 提供以下方式：</p>
+<ol>
+<li>对超参集合，可以自定义搜索空间，提供Grid，Choice等方式</li>
+<li>多种开箱即用的搜索算法，如PBT，ASHA等</li>
+<li>利用各种尖端优化算法，结合scheduler 自定义提前停止策略，甚至在训练过程中调整超参以优化训练，节约成本</li>
+<li>可以自定义训练任务的资源，进行多GPU的分布式并行训练（同时进行多个训练评估任务）</li>
+</ol>
+<p>与此同时，我还使用Ray 集成了MLFlow trace，通过Azure DCE(Data Collection Endpoint) 和 DCR(Data Collection Rule)将训练过程和结果的日志记录到Azure Monitor中，将训练模型及运行日志保存到Azure Storage Account，实现模型训练过程的全链路监控与记录保存，以便问题排查和分析追溯。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文阐述了Databricks Platform 为机器学习模型开发提供的各种功能，通过项目实践方案介绍以及Ray 提供的AI库使用实践，让大家了解进行机器学习模型开发落地的过程，探讨一些最佳实践。由于篇幅原因，整个实现过程还有很多细节和落地注意事项未说明，有想进一步了解和沟通的同学，欢迎来找我一起探讨和总结。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-sg/azure/databricks/machine-learning/automl/how-automl-works">how automl works</a></p>
+<p><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-sg/azure/databricks/machine-learning/ray-integration">Use Ray on Azure Databricks</a></p>
+<p><a target="_blank" rel="noopener" href="https://pytorch.org/tutorials/intermediate/ddp_tutorial.html">Pytorch DDP</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.ray.io/en/latest/train/examples/deepspeed/deepspeed_example.html#deepspeed-example">Train with DeepSpeed ZeRO-3 and Ray Train</a></p>
+<p><a target="_blank" rel="noopener" href="https://openreview.net/forum?id=S1Y7OOlRZ">ASHA - Massively Parallel Hyperparameter Tuning </a></p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=JApPzAnbfPI">MLOps on Databricks</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2024/02/20/databricks-ray-ml/" title="分布式框架Ray在Databricks上机器学习模型开发的实践">http://example.com/2024/02/20/databricks-ray-ml/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Machine-Learning/" rel="tag"># Machine Learning</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/20/ml-ray-introduction/" rel="prev" title="聊聊通用分布式计算框架Ray">
+      <i class="fa fa-chevron-left"></i> 聊聊通用分布式计算框架Ray
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/04/03/LLM-RAG-introduction/" rel="next" title="RAG 观察">
+      RAG 观察 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Machine-Learning-in-Databricks"><span class="nav-number">2.</span> <span class="nav-text">Machine Learning in Databricks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8Databricks%E4%B8%8A%E4%BD%BF%E7%94%A8Ray-AI-Libraries"><span class="nav-number">3.</span> <span class="nav-text">在Databricks上使用Ray AI Libraries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : 'c59fb44dd842ec05a5af7cdb03c94847',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

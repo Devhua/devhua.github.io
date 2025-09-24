@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。不得不说，这本书讲的还是非常通俗易懂的，老周从自己的做360的初衷、过程及遇到的问题和解决方式思维，多个角度分析了自己在互联网这块的认">
+<meta property="og:type" content="article">
+<meta property="og:title" content="读《周鸿祎自述：我的互联网方法论》">
+<meta property="og:url" content="http://example.com/2018/04/20/book-internet-discuss-zhou/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。不得不说，这本书讲的还是非常通俗易懂的，老周从自己的做360的初衷、过程及遇到的问题和解决方式思维，多个角度分析了自己在互联网这块的认">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-04-20T03:28:06.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.197Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="互联网">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/04/20/book-internet-discuss-zhou/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>读《周鸿祎自述：我的互联网方法论》 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/04/20/book-internet-discuss-zhou/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          读《周鸿祎自述：我的互联网方法论》
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-20 11:28:06" itemprop="dateCreated datePublished" datetime="2018-04-20T11:28:06+08:00">2018-04-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">阅读</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。"><a href="#背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。" class="headerlink" title="背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。"></a>背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。</h4><p>不得不说，这本书讲的还是非常通俗易懂的，老周从自己的做360的初衷、过程及遇到的问题和解决方式思维，多个角度分析了自己在互联网这块的认识和简介。<strong>简单来讲就是，以免费带量，靠增值服务来赚钱；用户至上，体验为王。</strong></p>
+<span id="more"></span>
+
+<p>书中开始谈到了互联网时代的浪潮在那个时代降临，对很多传统公司是一个很大的冲击。书中谈到一个比喻很恰当，就像一个野蛮人冲进了中医药馆，一顿乱砸，却打到了老中医。对于互联网时代的到来，很多企业措手不及，不理解别人的战法，觉得很荒谬，行不通。周做360专门免费查杀流氓软件，并没有考虑完善的商业模式，一脚踏入互联网安全领域。而当时的金山和瑞星等安全大佬都很不看好周，觉得都是一些小把戏，玩不通。可就是这样让他圈住了非常多的用户，开启了互联网的布局之路。趋势一旦爆发，就不会是线性的发展。周认定安全就应该免费，要做一款互联网时代的免费产品。同时，电商里淘宝开店是免费；微信聊天里语音是免费；滴滴和快的打车大战也是免费圈住用户。这些在那个时代，很多大的传统企业都看不穿。</p>
+<p>老周这本书<strong>大肆宣扬了360如何如何帮助用户解决问题，如何如何用心改善产品，提供用户体验。</strong>其实都是在讲一个道理，那就是互联网里的用户至上。通过免费和逐步改进的体验，通过互联网式的创新，逐步获得用户口碑，然后在互联网中扩散，包揽用户。首先，这里面的提升产品体验有一个核心就是，用户到底接不接受你的产品。你的产品帮用户解决了什么问题。其次是创新，这里面的创新包括两个方面，一个是商业模式的创新，你通过需要付费变成免费；一个是产品体验的创新，你将非常难用和复杂的产品变得人人会用，简单直接的产品。这样你就可以获得海量的用户，当你的用户量级达到1个亿的时候，你的商业模式就清晰多了。说道360从免费杀毒做起，不断优化杀毒和电脑体检的操作体验，推出电脑安全评分击败了全国百分之多少的人等诸如此类的“微创新”，获得了庞大的用户体量。然后根据用户的需要推出360安全浏览器，避免下载到流氓软件和病毒等产品，在这些产品中再推荐好用的软件获得一些增值服务。这样就很容易找到自己的商业模式。而这些的产生并非老周一开始就能布局到的，也是一步一步从用户的诉求和自身的发展而找到的。同理也讲到了腾讯系产品的发展和阿里系产品的发展道路，都是通的。</p>
+<p>说到颠覆式创新，有几个特点就是：</p>
+<p><strong>1.需要逆向思维；2.要有拿来主义；3.力量来自侧翼和聚焦。</strong></p>
+<p>所谓逆向思维，有几个例子：</p>
+<blockquote>
+<p>微博的140字限制对于博客的逆向；乔布斯的“think different”；巴菲特的名言-别人贪婪时我恐惧，别人恐惧时我贪婪。提倡拿来主义主要是指，互联网的创新并非说非要你研究一个特别伟大的新发明出来，而是结合各个行业产业的特点，找到自己产品的结合点，从而优化自己的产品，使体验做到极致。谈到乔布斯做的iPhone就是承认自己很多都是借鉴别人的想法，听说苹果的设计师就是设计马桶出身（突出白色的设计）。</p>
+</blockquote>
+<p>而创新的力量源自侧翼和聚焦主要是指你创作出一款产品一定是从大公司侧方进入，因为你一开始需要避免直接跟大公司对抗，要找一个大公司看不到角度，从侧翼切入更容易获取到用户，同时不会在初期就被大公司打压或者抄袭。而聚焦也很关键，因为你的资源一定是没有大公司丰富。做产品一定要做减法，一定要找对一个点，在这个点上做到极致。就像电钻一样，力用在一个点才能产生大的压强。</p>
+<p>另外就是说到了什么是体验为王的概念，放到如今，互联网人都了解。体验的基础还是用户需求，找到用户的真实需求，去解决用户的实际问题，然后再不断的抠细节。大道至简，随着互联网的到来和技术的发展，人们一定是越来越追求简单方面的产品，不会去看你写的长篇大论的使用说明书！</p>
+<p>再一个书中结尾部分说到一些团队管理方面的事情，这个值得思考下。如何建立一个“铁打的营盘”，关键是把我三个要点：</p>
+<ul>
+<li>1.不能以发财为目标，一定要有某种程度的理想主义情怀；</li>
+<li>2.财散人聚，要有激励机制，把大家的利益捆绑在一起；</li>
+<li>3.解决新老交替的问题，留一部分利益给未来。</li>
+</ul>
+<p>创业是一个非常艰辛的过程，团队一定要有一个明确的理想主义目标，这样才能持之以恒的走下去。当然，创业除了谈理想，更要做好利益分配，并不是随便拉来个人就跟你拼命。</p>
+<p>创业是一件耗人健康、燃烧青春的事，那些愿意跟你打拼的人就要做好利益分配，分享未来的收益。360一开始就做了员工持股计划，我觉得这点做的很实在。然后就是推崇扁平化，减少企业流程，大公司里页推行“小而美”的团队。</p>
+<p>说了这么多，我主要是提炼出一些观点，中间避开了非常多的老周鼓吹的360发展史。再来吐槽下，自己对老周在书中360度吹捧360感到不适应。一个例子书中说了无数次，真心多啊。关键是对比自己以前在windows上使用360的体验来讲，他说的一些完全就是打自己的嘴。什么弹窗啊，胡乱推荐啊，默认设置啊，各种强行安装软件啊等等。归根结底，都是互联网各种套路。</p>
+<p>现在回过头来看，这些概念老早就被互联网氛围宣扬的人人皆知。看完这本书还是比较轻松的，对老周在书中的推荐书单简单列举下，觉得还不错，找时间可以读一读感受下。</p>
+<p><strong>书单：</strong></p>
+<ul>
+<li>1.《硅谷热》——全方位审视硅谷，硅谷精神；</li>
+<li>2.《黑天鹅》——老周举例说明趋势的到来影响</li>
+<li>3.《乔布斯传》——这个不用讲都知道</li>
+<li>4.《创新者的窘境》《创新者的解答》——老周讲颠覆式创新的例子</li>
+<li>5.《营销战》——颠覆式创新的力量来自侧翼和聚焦的例子</li>
+<li>6.《商业秀》——超出预期的用户体验，把用户玩高兴</li>
+<li>7.《精益创业》——这本书看过了，将创业的MVP模式，小步快跑，不断试错</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2018/04/20/book-internet-discuss-zhou/" title="读《周鸿祎自述：我的互联网方法论》">http://example.com/2018/04/20/book-internet-discuss-zhou/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%92%E8%81%94%E7%BD%91/" rel="tag"># 互联网</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/20/iOS-Learn-Notes/" rel="prev" title="iOS近期知识总结">
+      <i class="fa fa-chevron-left"></i> iOS近期知识总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/18/dataops-ranger-configurations/" rel="next" title="企业私有云大数据平台权限管理分享（一）">
+      企业私有云大数据平台权限管理分享（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E8%BF%99%E6%9C%AC%E4%B9%A6%E8%B7%9F%E6%88%91%E4%BB%AC%E5%81%9A%E4%BA%92%E8%81%94%E7%BD%91%E4%BA%A7%E5%93%81%E7%9B%B8%E5%85%B3%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E5%9C%A8%E5%81%9A%E4%B8%80%E6%AC%BE%E5%88%9B%E6%96%B0%E5%9E%8B%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E4%BA%A7%E5%93%81%E6%97%B6%EF%BC%8C%E9%9C%80%E8%A6%81%E5%9B%A2%E9%98%9F%E6%88%90%E5%91%98%E8%83%BD%E6%9C%89%E4%BA%92%E8%81%94%E7%BD%91%E6%80%9D%E7%BB%B4%EF%BC%8C%E9%80%9A%E8%BF%87%E4%BA%92%E8%81%94%E7%BD%91%E6%96%B9%E6%B3%95%EF%BC%8C%E8%83%BD%E4%B8%BA%E4%BA%86%E4%B8%80%E8%87%B4%E7%9A%84%E7%9B%AE%E6%A0%87%E5%9B%A2%E7%BB%93%E4%B8%80%E8%B5%B7%EF%BC%8C%E5%B0%86%E4%BA%A7%E5%93%81%E5%81%9A%E5%88%B0%E6%9E%81%E8%87%B4%E3%80%82%E4%B8%8D%E8%BF%87%E4%B9%A6%E4%B8%AD%E8%B0%88%E5%88%B0%E7%9A%84%E5%BE%88%E5%A4%9A%E9%83%BD%E6%98%AF%E5%89%8D%E5%87%A0%E5%B9%B4%E5%90%B5%E7%9A%84%E6%AF%94%E8%BE%83%E7%81%AB%E7%9A%84%E6%A6%82%E5%BF%B5%EF%BC%8C%E8%87%AA%E5%B7%B1%E4%B9%9F%E4%B8%80%E7%9B%B4%E5%9C%A8%E4%BA%92%E8%81%94%E7%BD%91%E5%9C%88%E5%AD%90%E9%87%8C%EF%BC%8C%E6%89%80%E4%BB%A5%E5%AF%B9%E4%BB%96%E6%8F%90%E5%88%B0%E7%9A%84%E8%A7%82%E7%82%B9%E5%92%8C%E7%9C%8B%E6%B3%95%E4%B9%9F%E6%98%AF%E4%BA%86%E8%A7%A3%E7%9A%84%E3%80%82"><span class="nav-number">1.</span> <span class="nav-text">背景：这本书跟我们做互联网产品相关，尤其是在做一款创新型人工智能产品时，需要团队成员能有互联网思维，通过互联网方法，能为了一致的目标团结一起，将产品做到极致。不过书中谈到的很多都是前几年吵的比较火的概念，自己也一直在互联网圈子里，所以对他提到的观点和看法也是了解的。</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '363b68d587f179abb14d766957fe2aa3',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

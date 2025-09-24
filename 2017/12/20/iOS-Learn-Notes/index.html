@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1.APP之间通信方式有哪些 URL Scheme（在info.plist中配置LSApplicationQueriesSchemes，指定目标app的scheme，然后在目标app的info.plist中配置好URL types）场景：分享，支付等 Keychain本质是sqlite数据库，独立每个app的沙盒之外，即使删除app，keychain中的信息还存在特点：不同app之间需要通过key">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS近期知识总结">
+<meta property="og:url" content="http://example.com/2017/12/20/iOS-Learn-Notes/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="1.APP之间通信方式有哪些 URL Scheme（在info.plist中配置LSApplicationQueriesSchemes，指定目标app的scheme，然后在目标app的info.plist中配置好URL types）场景：分享，支付等 Keychain本质是sqlite数据库，独立每个app的沙盒之外，即使删除app，keychain中的信息还存在特点：不同app之间需要通过key">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2017/12/20/iOS-Learn-Notes/KTVHTTPCache.jpeg">
+<meta property="article:published_time" content="2017-12-20T03:15:00.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.206Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="iOS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2017/12/20/iOS-Learn-Notes/KTVHTTPCache.jpeg">
+
+<link rel="canonical" href="http://example.com/2017/12/20/iOS-Learn-Notes/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>iOS近期知识总结 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/12/20/iOS-Learn-Notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          iOS近期知识总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-12-20 11:15:00" itemprop="dateCreated datePublished" datetime="2017-12-20T11:15:00+08:00">2017-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>17 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="1-APP之间通信方式有哪些"><a href="#1-APP之间通信方式有哪些" class="headerlink" title="1.APP之间通信方式有哪些"></a>1.APP之间通信方式有哪些</h3><ul>
+<li>URL Scheme<br>（在info.plist中配置LSApplicationQueriesSchemes，指定目标app的scheme，然后在目标app的info.plist中配置好URL types）场景：分享，支付等</li>
+<li>Keychain<br>本质是sqlite数据库，独立每个app的沙盒之外，即使删除app，keychain中的信息还存在<br>特点：不同app之间需要通过keychain access groups才行，同一个teamID<br>场景：用户登录信息保存，同一平台上多个app之间实现统一账户登录</li>
+<li>UIPasteboard<br>系统剪切板 场景：淘宝口令</li>
+<li>UIDocumentInteractionController 系统级别，同设备上app之间的共享文档，以及文档预览，打印，发邮件和复制等</li>
+<li>local socket<br>app1在本地端口port1234建立socket tcp的bind和listen，APP2在同一端口port1234 发起tcp的connect连接<br>场景：某个App1具有特殊的能力，比如能够跟硬件进行通信，在硬件上处理相关数据。而App2则没有这个能力，但是它能给App1提供相关的数据，这样APP2跟App1建立本地socket连接，传输数据到App1，然后App1在把数据传给硬件进行处理。<br>缺陷：需要后台运行，因此，系统在任意时刻只有一个app在前台运行，那么就需要通信的另一方具备后台运行权限，类似导航，音乐，蓝牙通信类</li>
+</ul>
+<span id="more"></span>
+
+<h3 id="2-json解析及第三方库分析"><a href="#2-json解析及第三方库分析" class="headerlink" title="2.json解析及第三方库分析"></a>2.json解析及第三方库分析</h3><ul>
+<li><p>苹果原生NSJSONSerialization<br>原生有一些解析未进行容错处理<br>&#x2F;&#x2F;如：如何被解析的JSON数据如果既不是字典也不是数组（比如是NSString）, 那么就必须使用这</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">NSJSONReadingAllowFragments</span></span><br><span class="line"><span class="type">NSData</span> <span class="operator">*</span>data <span class="operator">=</span> [test dataUsingEncoding:<span class="type">NSUTF8StringEncoding</span>]</span><br><span class="line">id obj <span class="operator">=</span> [<span class="type">NSJSONSerialization</span> <span class="type">JSONObjectWithData</span>: data options:<span class="type">NSJSONReadingAllowFragments</span> error:<span class="literal">nil</span>];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>SBJSON 、JSONModel<br><strong>字典转模型框架</strong>：<br>a.Mantle 需要继承自MTModel<br>b.JSONModel 需要继承自JSONModel<br>c.MJExtension 不需要继承，无代码侵入性（运行时）<br>注意点：json解析中，jsonkit解析空数据时会变成NSNull类型，既不是nil也是string。解决方案可以使用<a target="_blank" rel="noopener" href="https://github.com/nicklockwood/NullSafe">NullSafe</a><br>使用afnetwork时可以设置<code>self.removesKeysWithNullValues = YES;</code></p>
+</li>
+</ul>
+<h3 id="3-AFNetwork3-x源码解析"><a href="#3-AFNetwork3-x源码解析" class="headerlink" title="3.AFNetwork3.x源码解析"></a>3.AFNetwork3.x源码解析</h3><p>源文件简而言之：AFHTTPSessionManager -&gt; 简单的HTTP请求封装<br>AFURLSessionManager -&gt; 网络通信核心，负责调配NSURLSession启动网络任务，设置session代理的转发、操作回调线程执行、组装参数及解析参数的调配等<br>AFNetworkReachabilityManager -&gt; 网络状态监控<br>AFSecurityPolicy -&gt; 网络安全策略<br>AFURLRequestSerialization&#x2F;AFURLResponseSerialization -&gt; 数据序列化和反序列化<br>工具包AF UIKit -&gt; 图片下载及缓存策略，网络请求时状态栏上的菊花出现时机等<br>追问：self.operationQueue.maxConcurrentOperationCount &#x3D; 1 AF3.x中操作队列并发线程数设置为1的目的？  </p>
+<p>1）众所周知，AF2.x所有的回调是在一条线程，这条线程是AF的常驻线程，而这一条线程正是AF调度request的思想精髓所在，所以第一个目的就是为了和之前版本保持一致。<br>2）因为跟代理相关的一些操作AF都使用了NSLock。所以就算Queue的并发数设置为n，因为多线程回调，锁的等待，导致所提升的程序速度也并不明显。反而多task回调导致的多线程并发，平白浪费了部分性能。<br>而设置Queue的并发数为1，（注：这里虽然回调Queue的并发数为1，仍然会有不止一条线程，但是因为是串行回调，所以同一时间，只会有一条线程在操作AFUrlSessionManager的那些方法。）至少回调的事件，是不需要多线程并发的。回调没有了NSLock的等待时间，所以对时间并没有多大的影响。（注：但是还是会有多线程的操作的，因为设置刚开始调起请求的时候，是在主线程的，而回调则是串行分线程。）</p>
+<p>做了什么：<br>1.各种请求方式request的拼接<br>2.对共用参数（session级别）和一些私用参数（task级别）的分离（<strong>代理转发的架构模式</strong>）<br>3.自定义的https认证处理<br>4.请求到数据后，做了各种数据格式的解析，支持自定义解析<br>5.成功和失败的回调处理<br>6.提供了UIKit的扩展（图片下载、缓存展示，菊花展示）</p>
+<h3 id="4-野指针是什么，iOS-开发中什么情况下会有野指针？"><a href="#4-野指针是什么，iOS-开发中什么情况下会有野指针？" class="headerlink" title="4.野指针是什么，iOS 开发中什么情况下会有野指针？"></a>4.野指针是什么，iOS 开发中什么情况下会有野指针？</h3><p>野指针是不为 nil，但是指向已经被释放的内存的指针。<br>__unsafe_unretain或者assign的指针，对象释放后会出现野指针。<br>一般情况下oc使用了weak指针，在对象销毁时指针会置nil<br>Student *stu &#x3D; [[Student alloc] init];<br>[stu setAge:10];<br>[stu release];这里已经释放内存<br>[stu setAge:10];—》报错</p>
+<h3 id="5-简述runtime机制"><a href="#5-简述runtime机制" class="headerlink" title="5.简述runtime机制"></a>5.简述runtime机制</h3><p>OC是运行时语言，其中最重要的是消息机制，实现动态调用。<br>执行某个方法，实际是在运行时向对象发消息。<br>这里涉及到iOS中NSObject的对象模型，Class isa指针，指向metaclass也就是静态的Class。一般一个Obj对象中的isa会指向普通的Class，这个Class中存储普通成员变量和对 象方法（“-”开头的方法），普通Class中的isa指针指向静态Class，静态Class中存储static类型成员变量和类方法（“+”开头的方 法）</p>
+<ul>
+<li>编译器将代码[obj makeText];转化为<code>objc_msgSend(obj,@selector(makeText));</code></li>
+<li>正常消息发送：在objc_msgSend函数中，首先通过obj对象的isa指针获取它对应的class，优先在class的cache查找message方法，如果找不到再到methodLists查找；如果在class中没有找到，则到super class查找，一旦找到就执行它的实现IMP</li>
+<li>动态方法解析与消息转发：首先oc在运行时调用+resolveInstanceMethod:或+resolveClassMethod:方法，让你添加放到实现。如果你添加方法并返回YES，那系统在运行时就会重新启动一次消息发送过程。</li>
+<li>快速转发：如果目标对象实现-forwardingTargetForSelector:方法，系统就会在运行时调用这个方法，只要这个方法返回的不是nil或self，也会重启消息发送的过程，把这消息转发给其他对象来处理，否则就会继续Normal Fowarding</li>
+<li>正常转发：如果没有使用Fast Forwarding来消息转发，最后只有使用Normal Forwarding来进行消息转发。它首先调用methodSignatureForSelector：方法来获取函数的参数和返回值，如果返回为nil，程序会Crash掉，并抛出unrecognized selector sent to instance异常信息。如果返回一个函数签名，系统就会创建一个NSInvocation对象并调用-forwardInvocation:方法。<br>场景：1.为@dynamic实现方法 2.代理模式实现 3.多重继承实现<br><strong>Objective-C 提供了 NSProxy 类可以用来做动态代理</strong></li>
+</ul>
+<h3 id="6-runtime进阶理解—-category-和-class的载入过程"><a href="#6-runtime进阶理解—-category-和-class的载入过程" class="headerlink" title="6.runtime进阶理解—-category 和 class的载入过程"></a>6.runtime进阶理解—-category 和 class的载入过程</h3><p><a target="_blank" rel="noopener" href="https://tech.meituan.com/DiveIntoCategory.html">美团技术团队深入理解category</a></p>
+<ul>
+<li>使用场景：1.将类的实现分开在不同文件中 2.声明私有方法 3.模拟多继承 4.把framework的私有方法公开</li>
+<li>对比extension：1.extension是编译期决议，是类的一部分，一般用来隐藏类的私有信息；必须有一个类的源码才能为类添加extension 2.而category是运行期决议，无法添加实例变量（运行期，对象的内存布局已经确定，如果添加实例变量会破坏类的内部布局）</li>
+<li>category的加载：1.category的方法没有“完全替换掉”原来类已经有的方法，如果category和原来类都有methodA，那么category附加完成之后，类的方法列表里会有两个methodA； 2.category的方法被放到了新方法列表的前面，而原来类的方法被放到了新方法列表的后面，这就是category的方法会<strong>覆盖</strong>掉原来类的同名方法</li>
+<li>category和load：1.附加category到类的工作先于+load方法的执行； 2.+load的执行顺序是先类，后category，而category的+load执行顺序是根据编译顺序决定； 3.虽然对于+load的执行顺序是这样，但是对于<strong>覆盖</strong>掉的方法，则会先找到最后一个编译的category里的对应方法。</li>
+<li>category其实并不是完全替换掉原来类的同名方法，只是category在方法列表的前面而已，所以我们只要顺着方法列表找到最后一个对应名字的方法，就可以调用原来类的方法</li>
+<li>category可以配合关联对象实现给类添加实例变量；其中所有的关联对象都由AssociationsManager管理；runtime的销毁对象函数objc_destructInstance里面会判断这个对象有没有关联对象，如果有，会调用_object_remove_assocations做关联对象的清理工作。</li>
+</ul>
+<h3 id="7-https单向验证和双向验证过程"><a href="#7-https单向验证和双向验证过程" class="headerlink" title="7.https单向验证和双向验证过程"></a>7.https单向验证和双向验证过程</h3><p>单向验证过程：整个https验证的流程了。简单总结一下：</p>
+<p>就是用户发起请求，服务器响应后返回一个证书，证书中包含一些基本信息和公钥。<br>用户拿到证书后，去验证这个证书是否合法，不合法，则请求终止。<br>合法则生成一个随机数，作为对称加密的密钥，用服务器返回的公钥对这个随机数加密。然后返回给服务器。<br>服务器拿到加密后的随机数，利用私钥解密，然后再用解密后的随机数（对称密钥），把需要返回的数据加密，加密完成后数据传输给用户。<br>最后用户拿到加密的数据，用一开始的那个随机数（对称密钥），进行数据解密。整个单向验证过程完成。<br><a target="_blank" rel="noopener" href="http://blog.csdn.net/duanbokan/article/details/50847612">https单向验证和双向验证</a><br>SSL协议即用到了对称加密也用到了非对称加密(公钥加密)，在建立传输链路时，SSL首先对对称加密的密钥使用公钥进行非对称加密，链路建立好之后，SSL对传输内容使用对称加密。</p>
+<p><strong>对称加密 ：速度高，可加密内容较大，用来加密会话过程中的消息</strong><br><strong>公钥加密 ：加密速度较慢，但能提供更好的身份认证技术，用来加密对称加密的密钥</strong></p>
+<h3 id="8-串行vs并发-同步vs异步-队列vs线程"><a href="#8-串行vs并发-同步vs异步-队列vs线程" class="headerlink" title="8.串行vs并发 同步vs异步 队列vs线程"></a>8.串行vs并发 同步vs异步 队列vs线程</h3><p>参考文章：<a target="_blank" rel="noopener" href="http://blog.leichunfeng.com/blog/2015/07/29/ios-concurrency-programming-operation-queues/">iOS并发编程之Operation Queues</a><br>串行与并发的主要区别：允许同时执行的任务数量</p>
+<p>同步vs异步：主要区别在于<strong>是否等待操作执行完成，即是否阻塞当前线程</strong>。</p>
+<p>队列vs线程：iOS中存在2种队列，串行队列和并发队列；串行队列中一次只能执行一个任务，并发队列则允许多个任务同时执行；iOS系统使用这些队列来进行任务调度，根据调度任务的需要和系统当前的负载情况动态地创建和销毁线程，而不需要我们手动管理。</p>
+<blockquote>
+<p>在其他许多语言中，为了提高应用的并发性，我们往往需要自行创建一个或多个额外的线程，并且手动地管理这些线程的生命周期，这本身就已经是一项非常具有挑战性的任务了。此外，对于一个应用来说，最优的线程个数会随着系统当前的负载和低层硬件的情况发生动态变化。因此，一个单独的应用想要实现一套正确的多线程解决方案就变成了一件几乎不可能完成的事情。而更糟糕的是，<strong>线程的同步机制</strong>大幅度地增加了应用的复杂性，并且还存在着不一定能够提高应用性能的风险。</p>
+</blockquote>
+<p>在iOS中，与直接创建线程的方式不同，我们只需定义好要调度的任务，然后让系统帮我们去执行这些任务就可以了。<br>当然在以下三种场景下，我们应该直接使用线程：</p>
+<ul>
+<li>用线程以外的其他方式都不能实现我们的特定任务</li>
+<li>必须实时执行一个任务，因为虽然队列会尽可能快地执行我们提交的任务，但并不能保证实时性</li>
+<li>需要对在后台执行的任务有更多的可预测行为</li>
+</ul>
+<p>gcd中注意项：<a target="_blank" rel="noopener" href="http://blog.csdn.net/u013046795/article/details/47057585">dispatch_barrier_async和dispatch_barrier_sync异同</a></p>
+<blockquote>
+<p>dispatch_barrier_sync和dispatch_barrier_async的共同点：<br>1、都会等待在它前面插入队列的任务（1、2、3）先执行完<br>2、都会等待他们自己的任务（0）执行完再执行后面的任务（4、5、6）<br>dispatch_barrier_sync和dispatch_barrier_async的不共同点：<br>在将任务插入到queue的时候，dispatch_barrier_sync需要等待自己的任务（0）结束之后才会继续程序，然后插入被写在它后面的任务（4、5、6），然后执行后面的任务<br>而dispatch_barrier_async将自己的任务（0）插入到queue之后，不会等待自己的任务结束，它会继续把后面的任务（4、5、6）插入到queue。<br>所以，dispatch_barrier_async的不等待（异步）特性体现在将任务插入队列的过程，它的等待特性体现在任务真正执行的过程。</p>
+</blockquote>
+<h3 id="9-dispatch-barrier-async使用Barrier-Task方法Dispatch-Barrier解决多线程并发读写同一个资源发生死锁"><a href="#9-dispatch-barrier-async使用Barrier-Task方法Dispatch-Barrier解决多线程并发读写同一个资源发生死锁" class="headerlink" title="9.dispatch_barrier_async使用Barrier Task方法Dispatch Barrier解决多线程并发读写同一个资源发生死锁"></a>9.dispatch_barrier_async使用Barrier Task方法Dispatch Barrier解决多线程并发读写同一个资源发生死锁</h3><p><a target="_blank" rel="noopener" href="https://github.com/ming1016/study/wiki/%E7%BB%86%E8%AF%B4GCD%EF%BC%88Grand-Central-Dispatch%EF%BC%89%E5%A6%82%E4%BD%95%E7%94%A8">GCD使用</a><br>Dispatch Barrier确保提交的闭包是指定队列中在特定时段唯一在执行的一个。在所有先于Dispatch Barrier的任务都完成的情况下这个闭包才开始执行。轮到这个闭包时barrier会执行这个闭包并且确保队列在此过程不会执行其它任务。闭包完成后队列恢复。需要注意dispatch_barrier_async只在自己创建的队列上有这种作用，在全局并发队列和串行队列上，效果和dispatch_sync一样</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//创建队列</span></span><br><span class="line"><span class="keyword">self</span>.isolationQueue <span class="operator">=</span> dispatch_queue_create([label <span class="type">UTF8String</span>], <span class="type">DISPATCH_QUEUE_CONCURRENT</span>);</span><br><span class="line"><span class="comment">//改变setter</span></span><br><span class="line"><span class="operator">-</span> (void)setCount:(<span class="type">NSUInteger</span>)count forKey:(<span class="type">NSString</span> <span class="operator">*</span>)key</span><br><span class="line">&#123;</span><br><span class="line">     key <span class="operator">=</span> [key <span class="keyword">copy</span>];</span><br><span class="line">     <span class="comment">//确保所有barrier都是async异步的</span></span><br><span class="line">     dispatch_barrier_async(<span class="keyword">self</span>.isolationQueue, <span class="operator">^</span>()&#123;</span><br><span class="line">          <span class="keyword">if</span> (count <span class="operator">==</span> <span class="number">0</span>) &#123;</span><br><span class="line">               [<span class="keyword">self</span>.counts removeObjectForKey:key];</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">self</span>.counts[key] <span class="operator">=</span> @(count);</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="operator">-</span> (void)dispatchBarrierAsyncDemo &#123;</span><br><span class="line">    <span class="comment">//防止文件读写冲突，可以创建一个串行队列，操作都在这个队列中进行，没有更新数据读用并行，写用串行。</span></span><br><span class="line">    dispatch_queue_t dataQueue <span class="operator">=</span> dispatch_queue_create(<span class="string">&quot;com.starming.gcddemo.dataqueue&quot;</span>, <span class="type">DISPATCH_QUEUE_CONCURRENT</span>);</span><br><span class="line">    dispatch_async(dataQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        [<span class="type">NSThread</span> sleepForTimeInterval:<span class="number">2</span>.f];</span><br><span class="line">        <span class="type">NSLog</span>(@<span class="string">&quot;read data 1&quot;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">    dispatch_async(dataQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        <span class="type">NSLog</span>(@<span class="string">&quot;read data 2&quot;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">//等待前面的都完成，在执行barrier后面的</span></span><br><span class="line">    dispatch_barrier_async(dataQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        <span class="type">NSLog</span>(@<span class="string">&quot;write data 1&quot;</span>);</span><br><span class="line">        [<span class="type">NSThread</span> sleepForTimeInterval:<span class="number">1</span>];</span><br><span class="line">    &#125;);</span><br><span class="line">    dispatch_async(dataQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        [<span class="type">NSThread</span> sleepForTimeInterval:<span class="number">1</span>.f];</span><br><span class="line">        <span class="type">NSLog</span>(@<span class="string">&quot;read data 3&quot;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">    dispatch_async(dataQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        <span class="type">NSLog</span>(@<span class="string">&quot;read data 4&quot;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="10-内存管理中，dealloc和release的区别是什么-block的实现机制"><a href="#10-内存管理中，dealloc和release的区别是什么-block的实现机制" class="headerlink" title="10.内存管理中，dealloc和release的区别是什么; block的实现机制"></a>10.内存管理中，dealloc和release的区别是什么; block的实现机制</h4><p>release 使对象的内存计数-1；dealloc释放的时候调用，清除</p>
+<blockquote>
+<p>僵尸对象：系统在回收对象时,可以不将其真的回收, 而是把它转化为僵尸对象,通过环境变量 NSZombieEnabled 可开启此功能系统会修改对象的 isa 指针,令其指向特殊的僵尸类, 从而使改对象变为僵尸对象.僵尸类能够相应所有的选择子, 相应方式为:打印一条包含消息内容及其接受者的消息,然后终止应用程序</p>
+</blockquote>
+<p>大量对象创建时循环遍历导致内存峰值，可以使用autoreleasepool<br><strong>以”自动释放池块”降低内存峰值</strong></p>
+<blockquote>
+<p>自动释放池排布在栈中, 对象收到 autorelease 消息后, 系统将其放入最顶端的池里要合理运用自动释放池, 可降低应用程序的内存封值<br>@autoreleasepool 这种新式写法能创建出更为轻便的自动释放池<br>常见的例子就是 下边的 加上@autoreleasepool应用程序在执行循环的时候内存峰值就会降低<br>如：</p>
+</blockquote>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">NSArray</span> <span class="operator">*</span>dataArr <span class="operator">=</span> [<span class="type">NSArray</span> array];</span><br><span class="line">    <span class="type">NSMutableArray</span> <span class="operator">*</span>personArrM <span class="operator">=</span> [<span class="type">NSMutableArray</span> array];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">NSDictionary</span> <span class="operator">*</span>recode <span class="keyword">in</span> dataArr) &#123;</span><br><span class="line">        <span class="meta">@autoreleasepool</span>&#123;            </span><br><span class="line">            <span class="type">LLPerson</span> <span class="operator">*</span>person <span class="operator">=</span> [[<span class="type">LLPerson</span> alloc]initWithRecode:recode];</span><br><span class="line">            [personArrM addObject:person];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>block对象</code>：块本身也是对象,在存放块对象内存区域中, 首个变量是指向 Class 对象的指针,该指针叫做 isa, 其余内存里含有块对象正常运转所需的各种信息, 在内存布局中,最重要的就是 invoke 变量,这就是函数指针,指向块的实现代码, 函数原型只要要接受一个 void <em>型的参数, 此参数代表块.刚才说过, <em>*块其实就是一种代替函数指针的语法结构</em></em> , 原来使用函数指针是需要用不透明的 void 指针来传递状态 而改用块之后, 则可以把原来用标准 C 语言特性所编写的代码封装成简明且易用的接口.</p>
+<p><code>descriptor</code> 变量是指向结构体的指针, 每个块里都包含此结构体,其中声明了块对象的总体大小,还声明了 copy 和 dispose 这两个辅助函数所对象的函数指针, 辅助函数在拷贝及丢弃块对象时运行, 其中会执行一些操作, 比方说 前者要保留捕获的对象, 而后者则将之释放</p>
+<p><strong>块还会把它所捕获的所有变量都拷贝一份, 这些拷贝放在 descriptor 变量后边,捕获了多少变量,就要占据多少内存空间, 请注意, 拷贝的并不是对象变量,而是指向这些对象的指针变量, invoke 函数为何需要把块对象作为参数传进来呢? 原因就在于,执行块的时候 要从内存中把这些捕获到的变量读出来</strong></p>
+<p>相关阅读整理：<a target="_blank" rel="noopener" href="http://www.imlifengfeng.com/blog/?p=457">iOS Block详解</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.wangjiawen.com/ios/ios-block-usage-and-implementation">iOS Block用法和实现原理</a></p>
+<h4 id="11-使用GCD实现高效代码加锁"><a href="#11-使用GCD实现高效代码加锁" class="headerlink" title="11.使用GCD实现高效代码加锁"></a>11.使用GCD实现高效代码加锁</h4><p>同步派发：create串行同步队列，读写操作安排在同一个队列中，保证数据同步（都使用dispatch_sync）<br>异步派发: 写操作异步操作（dispatch_async），弊端：比之前还慢，因为异步派发时需要拷贝block块</p>
+<p><strong>优化：不使用串行队列，改为并发队列，并且使用栅栏（barrier）</strong></p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">_syncQueue <span class="operator">=</span> dispatch_get_global_queue(<span class="type">DISPATCH_QUEUE_PRIORITY_DEFAULT</span>, <span class="number">0</span>);</span><br><span class="line"><span class="operator">-</span> (<span class="type">NSString</span> <span class="operator">*</span>)someString</span><br><span class="line">&#123;</span><br><span class="line">    __block <span class="type">NSString</span> <span class="operator">*</span>localSomeString;</span><br><span class="line">    dispatch_sync(_syncQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        localSomeString <span class="operator">=</span> _someString;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> localSomeString;</span><br><span class="line">&#125;</span><br><span class="line"><span class="operator">-</span> (void)setSomeString:(<span class="type">NSString</span> <span class="operator">*</span>)someString</span><br><span class="line">&#123;    </span><br><span class="line">    dispatch_barrier_async(_syncQueue, <span class="operator">^</span>&#123;</span><br><span class="line">        _someString <span class="operator">=</span> someString;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="12-KTVHTTPCache原理"><a href="#12-KTVHTTPCache原理" class="headerlink" title="12.KTVHTTPCache原理"></a>12.<a target="_blank" rel="noopener" href="https://github.com/ChangbaDevs/KTVHTTPCache">KTVHTTPCache</a>原理</h4><p>唱吧播放mp4文件，avplayer+KTVHTTPCache缓存播放</p>
+<p><img src="/2017/12/20/iOS-Learn-Notes/KTVHTTPCache.jpeg" alt="KTVHTTPCache结构及工作流程图"></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ChangbaDevs/KTVHTTPCache#%E4%B8%8B%E9%9D%A2%E7%AE%80%E8%BF%B0%E4%B8%80%E4%B8%8B%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B">工作流程描述</a></p>
+<p>值得注意的几个点：<br>1.使用<a target="_blank" rel="noopener" href="https://github.com/robbiehanson/CocoaHTTPServer">CocoaHTTPServer</a>设置本地http代理服务器，hook到播放器资源加载请求<br>2.模块化设置，各个类职责单一明显<br>3.缓存策略中的<strong>分片加载数据</strong>，区分本地数据和网络数据，最小化网络下载请求<br>4.对于锁屏后server socket失效的处理方式：做URL映射时先去ping一下本地的server，如果ping不通，则重启本地server（<strong>注：这里ping本地server的逻辑实现可以看看，使用NSCondition和NSURLSessionDataTask配合调用实现</strong>）</p>
+<h4 id="13-显示动画-uiview动画-与隐示动画（calayer动画）"><a href="#13-显示动画-uiview动画-与隐示动画（calayer动画）" class="headerlink" title="13.显示动画(uiview动画)与隐示动画（calayer动画）"></a>13.显示动画(uiview动画)与隐示动画（calayer动画）</h4><ul>
+<li>UIView关联的图层禁用了隐式动画，对这种图层做动画的唯一办法就是使用UIView的动画函数（而不是依赖CATransaction），或者继承UIView，并覆盖-actionForLayer:forKey:方法，或者直接创建一个显式动画。</li>
+<li>对于单独存在的图层，我们可以通过实现图层的-actionForLayer:forKey:委托方法，或者提供一个actions字典来控制隐式动画。</li>
+</ul>
+<p>你改变CALayer的一个可做动画的属性，它并不能立刻在屏幕上体现出来。相反，它是从先前的值平滑过渡到新的值；这一切都是默认的行为，你不需要做额外的操作，这就是隐式动画。<br>隐式动画的原因是我们没有指定动画的类型，只是改变了一个属性，然后Core Animation自己决定怎样去做动画，何时去做动画。</p>
+<blockquote>
+<p>系统什么时候处理隐式动画：Core Animation在每个run loop周期中自动开始一次新的事务，任何在一次run loop循环中的属性的改变都会被集中起来，然后做一次0.25秒的动画。</p>
+</blockquote>
+<p><strong>要想理解隐式动画，需要清楚几个概念：事务（CATransaction）、完成块（+setCompletionlock:）、图层行为（actions）以及呈现与模型</strong></p>
+<p>呈现与模型：mvc模式，core animation相当于控制器，负责根据图层行为和事务的设置去不断的更新屏幕上这些属性的状态；calayer相当于模型，连接用户界面的虚构的类，存储了视图如何显示和动画的数据模型；呈现图层：<strong>模型图层的复制，呈现图层上的属性值代表了当前屏幕显示的外观效果的属性的值，可以使用-presentationLayer方法来获取当前屏幕上属性的真正显示的值。</strong></p>
+<p>理解离屏渲染：</p>
+<blockquote>
+<p>当layer属性的混合体被指定在未预合成之前不能直接在屏幕中绘制时，屏幕外渲染就被唤醒。layer必须在被显示之前在一个屏幕外上下文中被渲染。<br>layer的以下属性将会触发屏幕外绘制：1.圆角（当和maskToBounds一起使用时） 2.图层蒙板 3.阴影</p>
+</blockquote>
+<h4 id="14-内联函数"><a href="#14-内联函数" class="headerlink" title="14.内联函数"></a>14.内联函数</h4><p>1.inline函数避免了普通函数的,在汇编时必须调用call的缺点:取消了函数的参数压栈，减少了调用的开销,提高效率.所以执行速度确比一般函数的执行速度要快;<br>2.集成了宏的优点,使用时直接用代码替换(像宏一样);<br>3.避免了宏的缺点:需要预编译.因为inline内联函数也是函数,不需要预编译.<br>4.编译器在调用一个内联函数时，会首先检查它的参数的类型，保证调用正确。然后进行一系列的相关检查，就像对待任何一个真正的函数一样。这样就消除了它的隐患和局限性。<br>5.可以使用所在类的保护成员及私有成员<br><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/d557b0831c6a">inline</a><br><a target="_blank" rel="noopener" href="https://www.bbsmax.com/A/A2dmYLK4de/">内联函数在iOS中的使用</a></p>
+<ul>
+<li>使用inline函数完全取代表达式形式的宏定义</li>
+<li>在内联函数内不允许用循环语句和 开关语句</li>
+</ul>
+<blockquote>
+<p>如果方法的调用频率很大，那么可以考虑使用内联函数来提高性能</p>
+</blockquote>
+<p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.bijishequ.com/detail/565351?p=">《Effective Objective-C重读校验自己的知识体系》</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ming1016/study/wiki/%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90-iOS-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96">深入剖析iOS性能优化</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/35dd92bcfe8c">iOS各种线程锁的简单介绍</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/4ffeb1ba3046">AFNetworking究竟做了什么</a></li>
+<li><a target="_blank" rel="noopener" href="https://zsisme.gitbooks.io/ios-/content/chapter7/layer-actions.html">iOS核心动画高级技巧之图层行为</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2017/12/20/iOS-Learn-Notes/" title="iOS近期知识总结">http://example.com/2017/12/20/iOS-Learn-Notes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iOS/" rel="tag"># iOS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/24/GCP-Shadowsocks/" rel="prev" title="GCP Shadowsocks">
+      <i class="fa fa-chevron-left"></i> GCP Shadowsocks
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/20/book-internet-discuss-zhou/" rel="next" title="读《周鸿祎自述：我的互联网方法论》">
+      读《周鸿祎自述：我的互联网方法论》 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-APP%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="nav-number">1.</span> <span class="nav-text">1.APP之间通信方式有哪些</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-json%E8%A7%A3%E6%9E%90%E5%8F%8A%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">2.json解析及第三方库分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-AFNetwork3-x%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">3.AFNetwork3.x源码解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E9%87%8E%E6%8C%87%E9%92%88%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8CiOS-%E5%BC%80%E5%8F%91%E4%B8%AD%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E4%BC%9A%E6%9C%89%E9%87%8E%E6%8C%87%E9%92%88%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">4.野指针是什么，iOS 开发中什么情况下会有野指针？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%AE%80%E8%BF%B0runtime%E6%9C%BA%E5%88%B6"><span class="nav-number">5.</span> <span class="nav-text">5.简述runtime机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-runtime%E8%BF%9B%E9%98%B6%E7%90%86%E8%A7%A3%E2%80%94-category-%E5%92%8C-class%E7%9A%84%E8%BD%BD%E5%85%A5%E8%BF%87%E7%A8%8B"><span class="nav-number">6.</span> <span class="nav-text">6.runtime进阶理解—-category 和 class的载入过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-https%E5%8D%95%E5%90%91%E9%AA%8C%E8%AF%81%E5%92%8C%E5%8F%8C%E5%90%91%E9%AA%8C%E8%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">7.</span> <span class="nav-text">7.https单向验证和双向验证过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E4%B8%B2%E8%A1%8Cvs%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5vs%E5%BC%82%E6%AD%A5-%E9%98%9F%E5%88%97vs%E7%BA%BF%E7%A8%8B"><span class="nav-number">8.</span> <span class="nav-text">8.串行vs并发 同步vs异步 队列vs线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-dispatch-barrier-async%E4%BD%BF%E7%94%A8Barrier-Task%E6%96%B9%E6%B3%95Dispatch-Barrier%E8%A7%A3%E5%86%B3%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%B9%B6%E5%8F%91%E8%AF%BB%E5%86%99%E5%90%8C%E4%B8%80%E4%B8%AA%E8%B5%84%E6%BA%90%E5%8F%91%E7%94%9F%E6%AD%BB%E9%94%81"><span class="nav-number">9.</span> <span class="nav-text">9.dispatch_barrier_async使用Barrier Task方法Dispatch Barrier解决多线程并发读写同一个资源发生死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#10-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%AD%EF%BC%8Cdealloc%E5%92%8Crelease%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88-block%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="nav-number">9.1.</span> <span class="nav-text">10.内存管理中，dealloc和release的区别是什么; block的实现机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-%E4%BD%BF%E7%94%A8GCD%E5%AE%9E%E7%8E%B0%E9%AB%98%E6%95%88%E4%BB%A3%E7%A0%81%E5%8A%A0%E9%94%81"><span class="nav-number">9.2.</span> <span class="nav-text">11.使用GCD实现高效代码加锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12-KTVHTTPCache%E5%8E%9F%E7%90%86"><span class="nav-number">9.3.</span> <span class="nav-text">12.KTVHTTPCache原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13-%E6%98%BE%E7%A4%BA%E5%8A%A8%E7%94%BB-uiview%E5%8A%A8%E7%94%BB-%E4%B8%8E%E9%9A%90%E7%A4%BA%E5%8A%A8%E7%94%BB%EF%BC%88calayer%E5%8A%A8%E7%94%BB%EF%BC%89"><span class="nav-number">9.4.</span> <span class="nav-text">13.显示动画(uiview动画)与隐示动画（calayer动画）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#14-%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0"><span class="nav-number">9.5.</span> <span class="nav-text">14.内联函数</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '1973511869a30c9e31620dcaab93d99a',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

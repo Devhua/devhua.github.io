@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言据 OpenAI 的公开资料显示，近年爆火的 ChatGPT，是基于 Ray 进行的包括预训练、Fine Tune、强化学习等 ChatGPT 的训练。那让我们来聊聊Ray 这个框架吧。 背景实际上，在2015年秋天，UC.Berkeley的 Ion Stoica教授给研究生讲系统课时，Robert和Philip 两个机器学习的学生正在做一个关于数据并行机器学习的训练，最初使用了Spark，并">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊聊通用分布式计算框架Ray">
+<meta property="og:url" content="http://example.com/2023/12/20/ml-ray-introduction/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言据 OpenAI 的公开资料显示，近年爆火的 ChatGPT，是基于 Ray 进行的包括预训练、Fine Tune、强化学习等 ChatGPT 的训练。那让我们来聊聊Ray 这个框架吧。 背景实际上，在2015年秋天，UC.Berkeley的 Ion Stoica教授给研究生讲系统课时，Robert和Philip 两个机器学习的学生正在做一个关于数据并行机器学习的训练，最初使用了Spark，并">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/12/20/ml-ray-introduction/ray_framework.png">
+<meta property="og:image" content="http://example.com/2023/12/20/ml-ray-introduction/ray_architecture.png">
+<meta property="og:image" content="http://example.com/2023/12/20/ml-ray-introduction/sky_compute.png">
+<meta property="article:published_time" content="2023-12-20T10:40:41.000Z">
+<meta property="article:modified_time" content="2025-09-24T07:45:25.196Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/12/20/ml-ray-introduction/ray_framework.png">
+
+<link rel="canonical" href="http://example.com/2023/12/20/ml-ray-introduction/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>聊聊通用分布式计算框架Ray | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/12/20/ml-ray-introduction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          聊聊通用分布式计算框架Ray
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-20 18:40:41" itemprop="dateCreated datePublished" datetime="2023-12-20T18:40:41+08:00">2023-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-09-24 15:45:25" itemprop="dateModified" datetime="2025-09-24T15:45:25+08:00">2025-09-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>据 OpenAI 的公开资料显示，近年爆火的 ChatGPT，是基于 Ray 进行的包括预训练、Fine Tune、强化学习等 ChatGPT 的训练。那让我们来聊聊Ray 这个框架吧。</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>实际上，在2015年秋天，UC.Berkeley的 Ion Stoica教授给研究生讲系统课时，Robert和Philip 两个机器学习的学生正在做一个关于数据并行机器学习的训练，最初使用了Spark，并进行了修改叫做SparkNet，后来发现Spark 太死板，在做强化学习时，需要的计算模型非常复杂，有嵌套并行的内容发现Spark 并不擅长。于是他们研发了分布式执行引擎Ray ，主要面向未来交互式的AI，提供任务并行和高速的任务调度，并在2017年发表了论文<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1712.05889.pdf">《Ray: A Distributed Framework for Emerging AI Applications》</a>。不同于Spark 这样的BSP 计算引擎，同一stage内的任务无法相互通信，而Ray 更加底层，更加灵活，一个任务可以启动其他任务或启动actor，它们可以相互通信，还实现了全局控制状态和调度器。</p>
+<p>基于<a target="_blank" rel="noopener" href="https://github.com/ray-project/ray">Ray</a> 这项开源工作，在2019年12月，该论文的一作、二作和Ion Stoica 教授以及Michael.Jordan 教授创立了<a target="_blank" rel="noopener" href="https://www.anyscale.com/">Anyscale</a>，提供托管Ray 的服务。值得注意的是，Ion Stoica教授也是Databricks(托管Spark)的原CEO。</p>
+<p>如今，Ray 社区非常活跃，github上已经有29.3k ⭐️，很多大厂如国外的OpenAI、Uber、Shopify等，国内的有蚂蚁集团、字节等都在生产环境广泛使用。Ray峰会<a target="_blank" rel="noopener" href="https://raysummit.anyscale.com/">Ray Summit</a>参加的人数也越来越多，更多的公司采用Ray 作为分布式计算的框架。</p>
+<span id="more"></span>
+
+<h2 id="Ray-框架简介"><a href="#Ray-框架简介" class="headerlink" title="Ray 框架简介"></a>Ray 框架简介</h2><p>现在的机器学习等任务在性能（任务高速响应），灵活性（计算任务差异），可靠性方面都有很高要求，因此设计一个新的计算框架Ray，提出了逻辑中心控制状态板（GCS）的概念，采用分片的分布式存储系统，提供一种自底向上的分布式调度器来实现。<br><img src="/2023/12/20/ml-ray-introduction/ray_framework.png" alt="Ray Framework"><br>由上面的Ray 框架图来看，Ray Core即是底层的核心实现，使得开发者能基于此，在本地机器、K8s集群或者各种云上开发构建可扩展的分布式应用。<br>在上层，Ray 提供了一系列的原生库，用于开发和部署机器学习任务，如可扩展的数据处理库、分布式训练库、超参调优库、模型服务以及分布式强化学习库等。</p>
+<p>机器学习应用或者数据应用增长速度远快于单个节点或者单个处理器的能力，必须使用分布式技术来处理这些工作，然而直接编写分布式应用非常困难，现在利用Ray 框架，可以方便的开发分布式任务，而不需要担心分布式组件通信、服务部署、服务发现、监控和异常恢复等。</p>
+<h3 id="Ray-编程模型"><a href="#Ray-编程模型" class="headerlink" title="Ray 编程模型"></a>Ray 编程模型</h3><p>Ray 提供了<strong>Actor</strong> 和<strong>Task-parallel</strong> 两种编程抽象，可以使用装饰器<code>@ray.remote</code> 将一个函数或者一个类变成分布式的task和actor，再通过分布式的对象存储来共享和传递object 以完成分布式的协作。不依赖某一种计算模式，提供简单易用的API，使得Ray 具有通用性，很方便的与其他框架集成。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ray</span><br><span class="line">ray.init()</span><br><span class="line"></span><br><span class="line"><span class="meta">@ray.remote</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">f</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> x * x</span><br><span class="line"></span><br><span class="line">futures = [f.remote(i) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>)]</span><br><span class="line"><span class="built_in">print</span>(ray.get(futures)) <span class="comment"># [0, 1, 4, 9]</span></span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ray</span><br><span class="line">ray.init(num_gpus=<span class="number">2</span>) <span class="comment"># Only call this once.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@ray.remote(<span class="params">num_gpus=<span class="number">1</span></span>)</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Counter</span>(<span class="title class_ inherited__">object</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        self.n = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">increment</span>(<span class="params">self</span>):</span><br><span class="line">        self.n += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">read</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> self.n</span><br><span class="line"></span><br><span class="line">counters = [Counter.remote() <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>)]</span><br><span class="line">[c.increment.remote() <span class="keyword">for</span> c <span class="keyword">in</span> counters]</span><br><span class="line">futures = [c.read.remote() <span class="keyword">for</span> c <span class="keyword">in</span> counters]</span><br><span class="line"><span class="built_in">print</span>(ray.get(futures)) <span class="comment"># [1, 1, 1, 1]</span></span><br></pre></td></tr></table></figure>
+<p>Ray 采用了动态计算图机制，Actor是<strong>有状态的工作进程</strong>，Actor的任务必须使用特定的方式提交给指定的实例，可以在执行过程中修改Actor 的内部状态。在同一个Actor中，方法的执行是顺序的，无法并行。这也是保障Ray 可以重建这些对象。<br>值得注意的是，这些Task和Actor都是可以<strong>指定资源和使用量</strong>，如CPU、GPU或者自定义的资源。</p>
+<h3 id="Ray-架构设计"><a href="#Ray-架构设计" class="headerlink" title="Ray 架构设计"></a>Ray 架构设计</h3><p><img src="/2023/12/20/ml-ray-introduction/ray_architecture.png" alt="Ray 架构设计图"></p>
+<p>Ray 集群是由一个或者多个worker 节点组成，其中一个节点被指定为head 节点。每个节点都有:</p>
+<ol>
+<li>一个或者多个worker进程，要么是无状态的remote function，要么是actor。每个工作节点会存储一些内容:<ul>
+<li>ownership 表，worker 引用的对象的系统元数据，例如引用计数（老iOSer 还记得MRC和ARC的爱恨情仇么）和对象位置，有关所有权归属机制的详细介绍可以看Ray 团队在NSDI 2021上发表的论文<a target="_blank" rel="noopener" href="https://stephanie-wang.github.io/pdfs/nsdi21-ownership.pdf">《Ownership: A Distributed Futures System for Fine-Grained Tasks》</a>。</li>
+<li>一个进程内存储，存放一些小对象（&lt;100KB）</li>
+</ul>
+</li>
+<li>raylet 进程，用于管理每个节点的共享资源，与worker 进程不同的是，raylet在所有并发的job中是共享的，主要有2个组件运行在单独的线程:<ul>
+<li>scheduler 组件，负责资源管理，任务调度和完成，将Task的参数存储在Object Store中；目前支持多种调度策略。</li>
+<li>object store 组件，存储和转移大对象。</li>
+</ul>
+</li>
+</ol>
+<p>集群内部大部分都是通过gRPC 调用通信的，保障集群内部通信效率。Ray 的三板斧包括：</p>
+<ol>
+<li><strong>分布式调度（Distributed Scheduler）</strong>：运行在每个节点的Raylet进程上，负责资源管理，task 放置的位置， 保证 task 运行所需要的参数对象可以从分布式对象存储的对象中获取。每个 Raylet 组件会跟踪本地节点的资源， 当一个资源请求被同意之后，Raylet 就会减少本地可用资源，一旦资源被使用完之后返还回来了，Raylet 又会增加本地的可用资源， 所以 Raylet 有一个强一致性的本地的可用资源的视图。同时，Raylet 也接收来自GCS 服务的一些关于其它节点的资源使用的信息， 这个信息（最终一致性）对于分布式调度是很有用。比如，在集群范围内，可以多种不同策略（数据位置、节点亲和性等）的调度。GCS 会定期（默认100ms）从每个节点的 Raylet 拉取本地节点的可用资源，然后将这些信息通过广播的方式告知所有节点的 Raylet。</li>
+<li><strong>分布式对象存储（Distributed Object Store）</strong>：分布式共享内存存储，在同一个节点上可以实现不同的woker进程之间能够零拷贝（zero copy）地访问共同的数据，不同节点上也可以引用。具体实现采用了Apache Arrow中的Plasma store，负责存储和转移大对象，如果plasma store满了之后，会通过LRU 机制剔除陈旧的对象溢出到外部存储（disk或者s3等）。</li>
+<li><strong>全局状态控制器（Global Controler Service）</strong>：之前的只在head节点，v2版本后支持了容错，可以运行在任意节点或多个节点。主要包含节点管理，资源管理，PlacementGroup管理（用于实现<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Gang_scheduling">gang-scheduling</a> - all or nothing调度）</li>
+</ol>
+<p>另外有些额外的辅助服务，如AutoScaler、Job Commit、监控等，使得集群管理更加简单。</p>
+<p>在一个Ion 的访谈，他也提到，<strong>从根本上说，Ray是一个RPC（远程过程调用）框架，加上一个actor框架，以及一个对象存储，它允许你在不同函数和actor之间通过引用（reference）高效传递数据。</strong></p>
+<p>字节在开源社区针对Ray 贡献了<a target="_blank" rel="noopener" href="https://github.com/ray-project/kuberay">Kuberay</a> 项目，用于Ray 集群的k8s部署管理。</p>
+<blockquote>
+<p>每个 Ray Cluster 由 Head 节点和 Worker 节点组成，每个节点是一份计算资源，可以是物理机、Docker 等等，在 K8s 上即为一个 Pod。启动 Ray Cluster 时，使用 Kuberay 的 Operator 来管理整个生命周期，包括创建和销毁 Cluster 等等。Kuberay 同时也支持自动扩展和水平扩展。Ray Cluster 在内部用于收集负载的 Metrics，并根据 Metrics 决定是否扩充更多的资源，如果需要则触发 Kuberay 拉起新的 Pod 或删除闲置的 Pod。<br>用户可以通过内部的平台使用 Ray，通过提交 Job 或使用 Notebook 进行交互式编程。平台通过 Kuberay 提供的 YAML 和 Restful API 这两种方式进行操作。</p>
+</blockquote>
+<h2 id="Ray-适用性"><a href="#Ray-适用性" class="headerlink" title="Ray 适用性"></a>Ray 适用性</h2><p>根据Ray 的特点，适合以下几类应用范围：</p>
+<ul>
+<li>构建机器学习平台<br>Ray 及提供的原生库可以和其他框架（如Pytorch，tensorflow）集成，可以为ML 平台提供统一的计算运行时，也能组成<strong>端到端</strong>的ML Workflow。</li>
+<li>离线批量处理<br>具有高效的缓存模型和高性能数据Pipeline，字节也在用<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzkxODM0NzQ4Mg==&mid=2247485273&idx=1&sn=ff4bcf8d6f75eb11644805f4117153d8&chksm=c1b38cecf6c405fab9ba606dacc44a0db24938d252b2c64fc4fd6aec0512356f6cdae8bd1908&scene=21#wechat_redirect">基于 Ray 的大规模离线推理</a></li>
+<li>深度学习<br>高性能的数据集成，支持CPU&#x2F;GPU 异构集群，以及自带多种超参搜索算法和并行训练。<br>我们在项目上是<strong>使用Ray 作为AutoML 库进行模型的超参微调和分布式并行训练的。</strong></li>
+<li>LLM &#x2F; 生成式AI<br>灵活的模型并行（支持集成DeepSpeed和Alpa），可以利用更小、更便宜的GPUs。</li>
+</ul>
+<p>实际上，Ray 作为通用分布式计算引擎，应用范围非常广，很多大厂也在同步扩展到不同的场景中去。如蚂蚁集团的实践：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/ovjyB1V6KZCUuF1iJIhL9Q">2023年终总结系列: Ray在蚂蚁集团生产规模达到100万核</a></p>
+<h2 id="Ray-相关"><a href="#Ray-相关" class="headerlink" title="Ray 相关"></a>Ray 相关</h2><ul>
+<li>Pathways</li>
+</ul>
+<p>Google 在2022年3月发表了<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2203.12533.pdf">PATHWAYS: ASYNCHRONOUS DISTRIBUTED DATAFLOW FOR ML</a>论文，介绍了面向机器学习的异步分布式数据流Pathways 框架，且使用该框架训练出了5400亿参数的PaLm 大模型。文中也多次提到Ray 的设计，但Pathways是谷歌闭源的，而且为TPU做了很多专门的设计，注定失望了。。</p>
+<ul>
+<li>Sky Compute</li>
+</ul>
+<p>在2021年 UC.Berkeley 又提出下一代云计算架构<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2205.07147.pdf">The Sky Above The Clouds</a> ，成立了<a target="_blank" rel="noopener" href="https://sky.cs.berkeley.edu/">SKY computing lab</a>（提出Ray 的实验室是叫<strong>Rise Lab</strong>） ，实现真正<strong>上天了- -！</strong>；其希望将现有的分散的云市场变成像互联网一样可连接且易于使用的公共市场，让SkyPilot 作为<strong>intercloud brokers</strong>，而目前Ray 正作为SkyPilot的底座。<br><img src="/2023/12/20/ml-ray-introduction/sky_compute.png" alt="Sky Compute 目标"><br>如上图，假设给定一项工作及其资源需求（CPU&#x2F;GPU&#x2F;TPU），SkyPilot 会自动找出哪些位置（区域&#x2F;区域&#x2F;云）具有运行该工作的计算能力，然后将其发送到成本最低的位置执行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文介绍了通用分布式计算框架Ray 的背景起源，通过深入Ray 的编程模型和架构设计，了解Ray的特点和优势，进而介绍了Ray 作为通用分布式计算框架的应用场景，最后介绍了与Ray 相似，Google的框架Pathways 和UC.Berkeley 下一步的野心–Sky Compute。希望本文能给在做分布式应用的同学带来帮助<del>(给Ray 打广告来了)</del>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1712.05889.pdf">Ray: A Distributed Framework for Emerging AI Applications</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1tBw9A4j62ruI5omIJbMxly-la5w4q_TjyJgJL_jN2fI/preview#heading=h.iyrm5j2gcdoq">Ray v2 Architecture</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2203.12533.pdf">Pathways Paper</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2205.07147.pdf">The Sky Above The Clouds</a></p>
+<p><a target="_blank" rel="noopener" href="https://thenewstack.io/how-ray-a-distributed-ai-framework-helps-power-chatgpt/">How Ray, a Distributed AI Framework, Helps Power ChatGPT</a></p>
+<p><a target="_blank" rel="noopener" href="https://whatbeg.com/2018/03/15/ray-paper.html">Ray Paper解读</a></p>
+<p><a target="_blank" rel="noopener" href="https://wandb.ai/wandb_fc/gradient-dissent/reports/Ion-Stoica-Spark-Ray-and-Enterprise-Open-Source--VmlldzoxNDEyMzY0?galleryTag=gradient-dissenthttps://wandb.ai/wandb_fc/gradient-dissent/reports/Ion-Stoica-Spark-Ray-and-Enterprise-Open-Source--VmlldzoxNDEyMzY0?galleryTag=gradient-dissent">Ion Stoica — Spark, Ray, and Enterprise Open Source</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cs.cmu.edu/~muli/file/parameter_server_osdi14.pdf">Scaling Distributed Machine Learning with the Parameter Server</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2023/12/20/ml-ray-introduction/" title="聊聊通用分布式计算框架Ray">http://example.com/2023/12/20/ml-ray-introduction/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Machine-Learning/" rel="tag"># Machine Learning</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/21/what-dataops/" rel="prev" title="DataOps 体系化">
+      <i class="fa fa-chevron-left"></i> DataOps 体系化
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/02/20/databricks-ray-ml/" rel="next" title="分布式框架Ray在Databricks上机器学习模型开发的实践">
+      分布式框架Ray在Databricks上机器学习模型开发的实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ray-%E6%A1%86%E6%9E%B6%E7%AE%80%E4%BB%8B"><span class="nav-number">3.</span> <span class="nav-text">Ray 框架简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ray-%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.1.</span> <span class="nav-text">Ray 编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ray-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.</span> <span class="nav-text">Ray 架构设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ray-%E9%80%82%E7%94%A8%E6%80%A7"><span class="nav-number">4.</span> <span class="nav-text">Ray 适用性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ray-%E7%9B%B8%E5%85%B3"><span class="nav-number">5.</span> <span class="nav-text">Ray 相关</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '5ceea7cb67dd2df8aa1d7ee8f8a5d584',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

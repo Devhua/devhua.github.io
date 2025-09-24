@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="WKWebview 踩坑之旅前言关于iOS 8后出来的WKWebview的简介，及对比UIWebview的优势 就不再做赘述了。可以参考nshipster介绍WKWebview学习WKWebview需研究源码，可以调试下miniBrowser项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WKWebview Tips">
+<meta property="og:url" content="http://example.com/2017/04/24/iOS-WKWebview-Tips/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="WKWebview 踩坑之旅前言关于iOS 8后出来的WKWebview的简介，及对比UIWebview的优势 就不再做赘述了。可以参考nshipster介绍WKWebview学习WKWebview需研究源码，可以调试下miniBrowser项目">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-04-24T02:54:44.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.208Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="iOS">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2017/04/24/iOS-WKWebview-Tips/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WKWebview Tips | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2017/04/24/iOS-WKWebview-Tips/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WKWebview Tips
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-24 10:54:44" itemprop="dateCreated datePublished" datetime="2017-04-24T10:54:44+08:00">2017-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="WKWebview-踩坑之旅"><a href="#WKWebview-踩坑之旅" class="headerlink" title="WKWebview 踩坑之旅"></a>WKWebview 踩坑之旅</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>关于iOS 8后出来的WKWebview的简介，及对比UIWebview的优势 就不再做赘述了。可以参考<br><a target="_blank" rel="noopener" href="http://nshipster.cn/wkwebkit/">nshipster介绍WKWebview</a><br>学习WKWebview需研究<a target="_blank" rel="noopener" href="https://github.com/WebKit/webkit">源码</a>，可以调试下miniBrowser项目</p>
+<span id="more"></span>
+
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在WKWebview出来这几年后，老项目一直未迁移到wkwebview，尽管我们知道它有着60 fps滚动刷新率，内存占用少，和safari相同的JavaScript引擎等优势，但由于其本身的不完善和一些坑点以及迁移的工作量等问题，一直未深入研究迁移方案。<br>但多个UIWebview浏览的内存暴涨导致容易crash一直是块心病。于是还是尝试迁移到wkwebview，便有了一段<strong>踩坑之旅</strong>。</p>
+<h3 id="WKWebview使用注意点"><a href="#WKWebview使用注意点" class="headerlink" title="WKWebview使用注意点"></a>WKWebview使用注意点</h3><p>网上也已经有不少使用注意点的总结文章，在此先贴出了，然后讲些自己遇到的问题和处理方案。<br><a target="_blank" rel="noopener" href="http://mp.weixin.qq.com/s/rhYKLIbXOsUJC_n6dt9UfA">WKWebView 那些坑</a><br><a target="_blank" rel="noopener" href="https://github.com/ShingoFukuyama/WKWebViewTips">WKWebviewTips</a></p>
+<h4 id="1-加载本地html注意区分系统版本"><a href="#1-加载本地html注意区分系统版本" class="headerlink" title="1. 加载本地html注意区分系统版本"></a>1. 加载本地html注意区分系统版本</h4><p>iOS9及以上版本可以使用<br><code>[self.webview loadRequest:request]</code></p>
+<p><strong>本地资源生成的request在iOS8下无法加载</strong><br>iOS8下加载本地文件: <code>[self.webview loadHTMLString:str]</code><br><a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/27803341/swift-wkwebview-loading-local-file-not-working-on-a-device">http://stackoverflow.com/questions/27803341/swift-wkwebview-loading-local-file-not-working-on-a-device</a></p>
+<h4 id="2-跨域跳转处理"><a href="#2-跨域跳转处理" class="headerlink" title="2.跨域跳转处理"></a>2.跨域跳转处理</h4><p><code>- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler</code><br>此代理中对于一些<code>navigationAction.navigationType</code>跳转类型判断需要注意自己处理。不然容易出现点击页面链接无响应。</p>
+<h4 id="3-共享cookie问题"><a href="#3-共享cookie问题" class="headerlink" title="3.共享cookie问题"></a>3.共享cookie问题</h4><p>如果有同时开多个网页的需求，这就需要注意共享cookie了。由于本身WKWebview中使用到了WKProcessPool，导致多个wkwebview间无法共享cookie。查看<a target="_blank" rel="noopener" href="https://github.com/mozilla-mobile/firefox-ios/blob/master/Client/Frontend/Browser/TabManager.swift">firefox源码</a></p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// A WKWebViewConfiguration used for normal tabs</span></span><br><span class="line">    <span class="keyword">lazy</span> <span class="keyword">fileprivate</span> <span class="keyword">var</span> configuration: <span class="type">WKWebViewConfiguration</span> <span class="operator">=</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> configuration <span class="operator">=</span> <span class="type">WKWebViewConfiguration</span>()</span><br><span class="line">        configuration.processPool <span class="operator">=</span> <span class="type">WKProcessPool</span>()</span><br><span class="line">        configuration.preferences.javaScriptCanOpenWindowsAutomatically <span class="operator">=</span> <span class="operator">!</span>(<span class="keyword">self</span>.prefs.boolForKey(<span class="string">&quot;blockPopups&quot;</span>) <span class="operator">??</span> <span class="literal">true</span>)</span><br><span class="line">        <span class="keyword">return</span> configuration</span><br><span class="line">    &#125;()</span><br><span class="line">    <span class="comment">// A WKWebViewConfiguration used for private mode tabs</span></span><br><span class="line">    <span class="keyword">lazy</span> <span class="keyword">fileprivate</span> <span class="keyword">var</span> privateConfiguration: <span class="type">WKWebViewConfiguration</span> <span class="operator">=</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> configuration <span class="operator">=</span> <span class="type">WKWebViewConfiguration</span>()</span><br><span class="line">        configuration.processPool <span class="operator">=</span> <span class="type">WKProcessPool</span>()</span><br><span class="line">        configuration.preferences.javaScriptCanOpenWindowsAutomatically <span class="operator">=</span> <span class="operator">!</span>(<span class="keyword">self</span>.prefs.boolForKey(<span class="string">&quot;blockPopups&quot;</span>) <span class="operator">??</span> <span class="literal">true</span>)</span><br><span class="line">        configuration.websiteDataStore <span class="operator">=</span> <span class="type">WKWebsiteDataStore</span>.nonPersistent()</span><br><span class="line">        <span class="keyword">return</span> configuration</span><br><span class="line">    &#125;()</span><br></pre></td></tr></table></figure>
+
+<p>以上代码是firefox在正常模式及隐私模式下创建的configuration.<br>当然，在app被kill掉后再启动又会被重置，导致pool中的cookie数据丢失。如果不是做浏览器，而是自身app与服务器打交道，可以考虑把cookie信息在请求前手动加上header中。<br>参考：<br><a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/39772007/wkwebview-persistent-storage-of-cookies">http://stackoverflow.com/questions/39772007/wkwebview-persistent-storage-of-cookies</a></p>
+<p><a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/26573137/can-i-set-the-cookies-to-be-used-by-a-wkwebview">http://stackoverflow.com/questions/26573137/can-i-set-the-cookies-to-be-used-by-a-wkwebview</a></p>
+<p><a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/33156567/getting-all-cookies-from-wkwebview">http://stackoverflow.com/questions/33156567/getting-all-cookies-from-wkwebview</a></p>
+<h4 id="4-部分特殊页面点击链接事件失效"><a href="#4-部分特殊页面点击链接事件失效" class="headerlink" title="4.部分特殊页面点击链接事件失效"></a>4.部分特殊页面点击链接事件失效</h4><p>在浏览部分邮箱页面（）在新标签页打开 ( wkwebview )时<br>&#x2F;&#x2F;例如：target &#x3D; “_blank”</p>
+<p><code>&lt;a href=&quot;https://m.baidu.com/?tn=&amp;amp;from=1018225b&quot; rel=&quot;noopener noreferrer&quot; target=&quot;_blank&quot; class=&quot;&quot;&gt;https://m.baidu.com/?tn=&amp;amp;from=1018225b&lt;/a&gt;</code></p>
+<p>点击链接后，在这个<code>- (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures</code>代理中收到的<code>request.url</code>为空，无法获取到正确请求。<br>这个问题在firefox上也有且未解决，然而Safari上都是正常的（苹果还是老奸巨猾啊。。）<br>参考: <a target="_blank" rel="noopener" href="http://swiftgazelle.com/2015/08/wkwebview-target_blank-quirks/">WKWebview-target-blank-quirks</a><br>当然UIWebview也有这样的问题，莫名其妙在CreateNewWebview代理中获取到的request为空，不过，UIWebview可以通过一些私有方式，很方便的获取到网页内部信息。</p>
+<h4 id="5-页面跳转后再返回不会执行script和Ajax"><a href="#5-页面跳转后再返回不会执行script和Ajax" class="headerlink" title="5.页面跳转后再返回不会执行script和Ajax"></a>5.页面跳转后再返回不会执行script和Ajax</h4><p><strong>从页面a进入页面b再返回页面a后不会重新执行script和Ajax，也不会触发页面reload，此部分情况需要针对实际场景做处理，手动reload。</strong></p>
+<h4 id="6-数据清除"><a href="#6-数据清除" class="headerlink" title="6.数据清除"></a>6.数据清除</h4><p>iOS 8下<code>WKWebsiteDataStore</code>还不支持，因此需要手动删除Cookies，Caches，Webkit文件夹（注意数据保存的路径问题）<br>iOS 9虽然有<code>WKWebsiteDataStore</code>接口，但实际使用起来会有概率性crash情况。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">NSSet</span> <span class="operator">*</span>websiteDataTypes</span><br><span class="line"><span class="operator">=</span> [<span class="type">NSSet</span> setWithArray:@[</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeDiskCache</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeOfflineWebApplicationCache</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeMemoryCache</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeLocalStorage</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeCookies</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeSessionStorage</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeIndexedDBDatabases</span>,</span><br><span class="line">                        <span class="type">WKWebsiteDataTypeWebSQLDatabases</span></span><br><span class="line">                        ]];</span><br><span class="line"><span class="comment">//// All kinds of data</span></span><br><span class="line"><span class="comment">//NSSet *websiteDataTypes = [WKWebsiteDataStore allWebsiteDataTypes];</span></span><br><span class="line"><span class="comment">//// Date from</span></span><br><span class="line"><span class="type">NSDate</span> <span class="operator">*</span>dateFrom <span class="operator">=</span> [<span class="type">NSDate</span> dateWithTimeIntervalSince1970:<span class="number">0</span>];</span><br><span class="line"><span class="comment">//// Execute</span></span><br><span class="line">[[<span class="type">WKWebsiteDataStore</span> defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:<span class="operator">^</span>&#123;</span><br><span class="line">   <span class="comment">// Done</span></span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+
+<p><strong>因此建议直接根据路径删除文件夹（iOS 8和iOS 9后数据保存的路径不一致，需要判断）</strong></p>
+<h4 id="7-横竖屏切换调整wkwebview视图"><a href="#7-横竖屏切换调整wkwebview视图" class="headerlink" title="7.横竖屏切换调整wkwebview视图"></a>7.横竖屏切换调整wkwebview视图</h4><p>在测试时发现WKWebview在iPad上浏览部分网页时，横竖屏切换显示错位，需要重新调整frame。参考firefox代码可见在iOS8以后有VC横竖屏切换开始及完成的代理。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="keyword">func</span> <span class="title function_">viewWillTransition</span>(<span class="params">to</span> <span class="params">size</span>: <span class="type">CGSize</span>, <span class="params">with</span> <span class="params">coordinator</span>: <span class="type">UIViewControllerTransitionCoordinator</span>) &#123;</span><br><span class="line">        <span class="keyword">super</span>.viewWillTransition(to: size, with: coordinator)</span><br><span class="line">        displayedPopoverController<span class="operator">?</span>.dismiss(animated: <span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="keyword">self</span>.displayedPopoverController <span class="operator">=</span> <span class="literal">nil</span></span><br><span class="line">        &#125;</span><br><span class="line">        coordinator.animate(alongsideTransition: &#123; context <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">self</span>.scrollController.updateMinimumZoom()</span><br><span class="line">            <span class="keyword">self</span>.topTabsViewController<span class="operator">?</span>.scrollToCurrentTab(<span class="literal">false</span>, centerCell: <span class="literal">false</span>)</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">let</span> popover <span class="operator">=</span> <span class="keyword">self</span>.displayedPopoverController &#123;</span><br><span class="line">                <span class="keyword">self</span>.updateDisplayedPopoverProperties<span class="operator">?</span>()</span><br><span class="line">                <span class="keyword">self</span>.present(popover, animated: <span class="literal">true</span>, completion: <span class="literal">nil</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, completion: &#123; <span class="keyword">_</span> <span class="keyword">in</span></span><br><span class="line">            <span class="keyword">self</span>.scrollController.setMinimumZoom()</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在VC将要开始转屏时，更新保存scrollController中的WKWebview的scrollview.zoomScale和scrollview.zoomScale.minimumZoomScale，然后在转屏完成后设置</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">self</span>.isZoomedOut <span class="operator">&amp;&amp;</span> roundNum(scrollView.zoomScale) <span class="operator">!=</span> roundNum(scrollView.minimumZoomScale) &#123;</span><br><span class="line">            scrollView.zoomScale <span class="operator">=</span> scrollView.minimumZoomScale</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样达到在转屏时顺畅的调整WKWeview的内容显示。</p>
+<h4 id="8-WKWebview刷新机制"><a href="#8-WKWebview刷新机制" class="headerlink" title="8.WKWebview刷新机制"></a>8.WKWebview刷新机制</h4><p>在一些低端机型上，滑动webview时明显就一段一段的白屏出现，跟UIWebview表现差远了。这引起了兴趣，查看并研究了下源码，发现wkwebview并不是跟uiwebview一样渲染所有网络数据，而是一屏一屏的渲染，也是这样才有了内存占用少的优势。也有一篇源码的文章推荐下<a target="_blank" rel="noopener" href="http://www.jianshu.com/p/1d739e2e7ed2">WKWebView刷新机制小探</a></p>
+<blockquote>
+<p>WKContentView就是WKWebView内容渲染的容器。在Reveal的树状图上面可以看到，渲染页面中，展示在页面上的渲染单元是WKCompositingView，WKCompositingView可以嵌套WKCompositingView。其中的一个WKCompositingView实例，将包含多个WKCompositingView子实例。类似于UITableView的重用机制，多个WKCompositingView的父View就相当于UITableView，WKCompositingView就相当于UITableViewCell，只展示可视区域的内容，达到性能优化的目的。</p>
+<p>一个WKWebView加载的web内容，切割成多个WKCompositingView，单个WKCompositingView重用单元的面积是375x512点。</p>
+</blockquote>
+<p>从源码入手确实可以看到很多实现细节，但真正想要想像UIWebview一样hook掉很多系统属性和方法是不可能的，只能说苹果做的真绝。。</p>
+<p>理解了这个刷新机制后，在做一些类似新闻类，有多个wkwebview当做uiview add到tableview上，即使竖向滚动也可以绑定wkwebview的scrollview的刷新渲染了。（<code>[WKWebView _updateVisibleContentRects]</code>）<br>推荐的文章最后说使用以下3个方法解决白屏问题：</p>
+<ul>
+<li>用KVO方法监听UITableView的contnetOffset属性，contentOffset发生变化也就是说UITableView发生滚动，调用WKWebView实例的_updateVisibleContentRects，刷新需要渲染的内容</li>
+<li>UITableView是继承自UIScrollView的，在代码中实现UIScrollView的delegate，在delegate实现中手动调用WKWebView实例等UIScrollViewDelegate的方法，原理和第一种方法一样</li>
+<li>使用CADisplayLink类，在CADisplayLink的回调方法里面调用WKWebView实例的_updateVisibleContentRects即可</li>
+</ul>
+<p>真正操作时你会发现，在快速滑动UITableView时，代理暴露出来的点跨度很大，完全不连贯，导致刷新内部webview的内容不及时。<strong>因此推荐使用CADisplaylink类，利用屏幕刷新机制去触发wkwebview实例的刷新。</strong></p>
+<h3 id="wkwebview致命缺陷-NSURLProtocol问题"><a href="#wkwebview致命缺陷-NSURLProtocol问题" class="headerlink" title="wkwebview致命缺陷 - NSURLProtocol问题"></a>wkwebview致命缺陷 - NSURLProtocol问题</h3><p>在做浏览器开发时，用户需求比较大的功能就是广告拦截。在这个广告遍地飞的时代，浏览器在用户使用时能自动过滤掉广告显示，将获得好评。</p>
+<p>首先简单说明下浏览器广告拦截的几种方式：1.网页开始http请求时，判断url请求是不是广告请求（需要库）2.网页加载完后，判断资源是否需要隐藏；<br>因此我们需要获取到wkwebview加载网页时的网络请求，针对各个网络请求判断是否进行拦截。<br>在UIWebview中我们可以使用NSURLProtocol进行拦截，也可以hook系统代理方法<code>- (NSURLRequest *)webView:(id)sender resource:(id)identifier willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse fromDataSource:(id)dataSource</code><br>进行拦截js广告。</p>
+<blockquote>
+<p>然而在WKWebview中，WKWebview在独立于app进程之外的进程中执行网络请求，请求数据不经过主进程，因此在WKWebview上直接使用NSURLProtocol无法拦截请求。</p>
+</blockquote>
+<p>不过我们也通过下载查看webkit2源码，发现<code>+ [WKBrowsingContextController registerSchemeForCustomProtocol:]</code>注册自定义的Protocol也是可以拦截请求的。<br>随之马上发现已这样的方式拦截请求再重新发送时，post形式的请求中body数据被清空了（例如百度登录过程中用户信息丢失无法登录）。</p>
+<blockquote>
+<p>由于 WKWebView 在独立进程里执行网络请求。一旦注册 http(s) scheme 后，网络请求将从 Network Process 发送到 App Process，这样 NSURLProtocol 才能拦截网络请求。在 webkit2 的设计里使用 MessageQueue 进行进程之间的通信，Network Process 会将请求 encode 成一个 Message,然后通过 IPC 发送给 App Process。出于性能的原因，encode 的时候 HTTPBody 和 HTTPBodyStream 这两个字段被丢弃掉了。</p>
+</blockquote>
+<p>遇到此问题后也陆续寻找了各种方案，后续专门再总结出来。</p>
+<ul>
+<li>鉴于此，目前就通过WKWebview自身的一些请求代理进行拦截以及在网页加载完成后进行部分css样式或者网页节点拦截。</li>
+</ul>
+<p>参考文章：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/rhYKLIbXOsUJC_n6dt9UfA">WKWebview 那些坑</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/856cefbbf4b0">WKWebview的使用详解和填坑</a></li>
+<li><a target="_blank" rel="noopener" href="http://nshipster.com/wkwebkit/">nshipster WKWebview</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.chenruixuan.com/archives/1116.html">编译运行WebKit Demo（Mac调试版本）</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2017/04/24/iOS-WKWebview-Tips/" title="WKWebview Tips">http://example.com/2017/04/24/iOS-WKWebview-Tips/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iOS/" rel="tag"># iOS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/" rel="prev" title="iOS应用脱壳和重签名">
+      <i class="fa fa-chevron-left"></i> iOS应用脱壳和重签名
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/24/GCP-Shadowsocks/" rel="next" title="GCP Shadowsocks">
+      GCP Shadowsocks <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#WKWebview-%E8%B8%A9%E5%9D%91%E4%B9%8B%E6%97%85"><span class="nav-number">1.</span> <span class="nav-text">WKWebview 踩坑之旅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WKWebview%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.3.</span> <span class="nav-text">WKWebview使用注意点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%8A%A0%E8%BD%BD%E6%9C%AC%E5%9C%B0html%E6%B3%A8%E6%84%8F%E5%8C%BA%E5%88%86%E7%B3%BB%E7%BB%9F%E7%89%88%E6%9C%AC"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. 加载本地html注意区分系统版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%B7%A8%E5%9F%9F%E8%B7%B3%E8%BD%AC%E5%A4%84%E7%90%86"><span class="nav-number">1.3.2.</span> <span class="nav-text">2.跨域跳转处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%85%B1%E4%BA%ABcookie%E9%97%AE%E9%A2%98"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.共享cookie问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E9%83%A8%E5%88%86%E7%89%B9%E6%AE%8A%E9%A1%B5%E9%9D%A2%E7%82%B9%E5%87%BB%E9%93%BE%E6%8E%A5%E4%BA%8B%E4%BB%B6%E5%A4%B1%E6%95%88"><span class="nav-number">1.3.4.</span> <span class="nav-text">4.部分特殊页面点击链接事件失效</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E9%A1%B5%E9%9D%A2%E8%B7%B3%E8%BD%AC%E5%90%8E%E5%86%8D%E8%BF%94%E5%9B%9E%E4%B8%8D%E4%BC%9A%E6%89%A7%E8%A1%8Cscript%E5%92%8CAjax"><span class="nav-number">1.3.5.</span> <span class="nav-text">5.页面跳转后再返回不会执行script和Ajax</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E6%B8%85%E9%99%A4"><span class="nav-number">1.3.6.</span> <span class="nav-text">6.数据清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-%E6%A8%AA%E7%AB%96%E5%B1%8F%E5%88%87%E6%8D%A2%E8%B0%83%E6%95%B4wkwebview%E8%A7%86%E5%9B%BE"><span class="nav-number">1.3.7.</span> <span class="nav-text">7.横竖屏切换调整wkwebview视图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-WKWebview%E5%88%B7%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="nav-number">1.3.8.</span> <span class="nav-text">8.WKWebview刷新机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wkwebview%E8%87%B4%E5%91%BD%E7%BC%BA%E9%99%B7-NSURLProtocol%E9%97%AE%E9%A2%98"><span class="nav-number">1.4.</span> <span class="nav-text">wkwebview致命缺陷 - NSURLProtocol问题</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '45bdc49ed987de21aaea8931b1d481a7',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

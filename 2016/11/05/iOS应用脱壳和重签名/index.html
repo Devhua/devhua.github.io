@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前期干货iOS破壳 用dumpdecrypted给App砸壳 iOS逆向工程之给App脱壳 给微信加 hook 尝试记录 一步一步实现iOS微信自动抢红包(非越狱) 工具：hopper：对脱壳app进行反汇编、反编译 可以分析app二进制文件dumpdecrypted：用于脱壳class-dump：对脱壳app 导出头文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS应用脱壳和重签名">
+<meta property="og:url" content="http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前期干货iOS破壳 用dumpdecrypted给App砸壳 iOS逆向工程之给App脱壳 给微信加 hook 尝试记录 一步一步实现iOS微信自动抢红包(非越狱) 工具：hopper：对脱壳app进行反汇编、反编译 可以分析app二进制文件dumpdecrypted：用于脱壳class-dump：对脱壳app 导出头文件">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-11-05T02:50:48.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.208Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="iOS">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>iOS应用脱壳和重签名 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          iOS应用脱壳和重签名
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-05 10:50:48" itemprop="dateCreated datePublished" datetime="2016-11-05T10:50:48+08:00">2016-11-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前期干货"><a href="#前期干货" class="headerlink" title="前期干货"></a>前期干货</h2><p><a target="_blank" rel="noopener" href="http://www.mottoin.com/92530.html">iOS破壳</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/oyzhx/article/details/38339129">用dumpdecrypted给App砸壳</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/ludashi/p/5725743.html">iOS逆向工程之给App脱壳</a></p>
+<p><a target="_blank" rel="noopener" href="https://testerhome.com/topics/4558">给微信加 hook 尝试记录</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.jianshu.com/p/189afbe3b429">一步一步实现iOS微信自动抢红包(非越狱)</a></p>
+<h3 id="工具："><a href="#工具：" class="headerlink" title="工具："></a>工具：</h3><p>hopper：对脱壳app进行反汇编、反编译 可以分析app二进制文件<br>dumpdecrypted：用于脱壳<br>class-dump：对脱壳app 导出头文件</p>
+<span id="more"></span>
+
+<p>越狱设备一台（当时是6s Plus ,ios9.2）<br>越狱后安装有 cydia ，通过cydia安装openSSH，可以通过网段连接到mac</p>
+<h3 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h3><p>步骤：</p>
+<ul>
+<li>下载 dumpdecrypted源码，然后在dumpdecrypted目录下make，生成dumpdecrypted.dylib文件</li>
+<li>电脑连接越狱设备（同一网段）：ssh <a href="mailto:&#x72;&#111;&#x6f;&#116;&#64;&#49;&#57;&#50;&#x2e;&#x31;&#x36;&#56;&#x2e;&#49;&#x33;&#x2e;&#x32;&#x33;&#x30;">&#x72;&#111;&#x6f;&#116;&#64;&#49;&#57;&#50;&#x2e;&#x31;&#x36;&#56;&#x2e;&#49;&#x33;&#x2e;&#x32;&#x33;&#x30;</a><br><a href="mailto:&#114;&#x6f;&#111;&#116;&#64;&#x31;&#x39;&#50;&#46;&#49;&#54;&#56;&#46;&#x31;&#51;&#x2e;&#x32;&#x33;&#48;">&#114;&#x6f;&#111;&#116;&#64;&#x31;&#x39;&#50;&#46;&#49;&#54;&#56;&#46;&#x31;&#51;&#x2e;&#x32;&#x33;&#48;</a>’s password:<br>openSSH的连接默认密码为:alpine。</li>
+<li>电脑连上手机后查询当前运行进程 ps -e | grep &#x2F;var&#x2F;mobile<br>此处直接打印出手机安装app的进程</li>
+<li>将电脑中make生成的dumpdecrypted.dylib文件 使用 scp 指令复制到 手机的&#x2F;var&#x2F;tmp&#x2F; 目录</li>
+<li>脱壳指令：6sPlus:&#x2F;var&#x2F;tmp root# DYLD_INSERT_LIBRARIES&#x3D;dumpdecrypted.dylib &#x2F;var&#x2F;mobile&#x2F;Containers&#x2F;Bundle&#x2F;Application&#x2F;6E1CC0B2-4DB7-4F37-B715-FAA317EEC469&#x2F;WeChat.app&#x2F;WeChat<br>此指令只能在当前&#x2F;var&#x2F;tmp&#x2F; 目录下执行</li>
+<li>完成后在手机&#x2F;var&#x2F;tmp&#x2F;目录下ls查看，得到WeChat.decrypted文件（目标脱壳文件）</li>
+<li>将脱壳文件使用scp拷贝到电脑：scp <a href="mailto:&#114;&#x6f;&#111;&#116;&#x40;&#49;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#46;&#x31;&#51;&#x2e;&#x32;&#x33;&#48;">&#114;&#x6f;&#111;&#116;&#x40;&#49;&#57;&#x32;&#46;&#x31;&#x36;&#x38;&#46;&#x31;&#51;&#x2e;&#x32;&#x33;&#48;</a>:&#x2F;var&#x2F;tmp&#x2F;WeChat.decrypted &#x2F;Users&#x2F;xxx&#x2F;Desktop</li>
+<li>使用指令 otool -l WeChat.decrypted | grep crypt (查看是否脱壳)<br>使用指令class-dump -S -s -H WeChat.decrypted -o .&#x2F;Headers（dump出头文件）</li>
+</ul>
+<p>过程中的坑点：</p>
+<p>架构问题：这次越狱设备是arm64架构的，dumpdecrypted编译出的是支持arm64，还有class-dump指令也是直接arm64.如果你越狱设备是armv7的则需要修改配置</p>
+<p>iOS9.2越狱设备：在网上查资料，好多说是要将dumpdecrypted.dylib文件拷贝到 目标app的document目录下，可是越狱设备安装了很多app，完全不好确定目标app的document目录，本来可以使用Cycript注入目标进程中（cycript -p WeChat），然后执行[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask][0] 获取目标进程的Document目录，然后复制文件过去就好。可是实施发现，iOS9.2越狱设备下使用Cycript指令后终端一直卡死，无显示。（设备确认安装了Cycript，应该是Cycript插件不支持iOS9.2），这样就无法获取目标app的document目录！好在发现直接把dumpdecrypted.dylib放在手机的&#x2F;var&#x2F;tmp&#x2F;目录下，执行脱壳指令也是可行的！</p>
+<h2 id="重签名app"><a href="#重签名app" class="headerlink" title="重签名app"></a>重签名app</h2><p><a target="_blank" rel="noopener" href="http://forums.macnn.com/79/developer-center/355720/how-re-sign-apples-applications-once/">《How to re-sign Apple’s applications once they’ve been modified》</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.ifun.cc/blog/2014/02/22/ios-appzhong-xin-qian-ming-fang-fa-jie-shao/">中文简版步骤</a></p>
+<p>步骤：</p>
+<ul>
+<li>查看有效的证书 : security find-identity -v -p codesigning</li>
+<li>检查目标app签名情况：codesign -dvvv EmojiKeyboard.app</li>
+<li>删除ipa中之前的签名文件:rm -rf Payload&#x2F;*.app&#x2F;_CodeSignature&#x2F;</li>
+<li>拷贝新的provision profile替换旧的embedded.mobileprovision（这个provision profile需要是distribution provision，可以找之前项目的） cp 123.mobileprovision Payload&#x2F;*.app&#x2F;embedded.mobileprovision</li>
+<li>重签名：codesign -f -s (name of certificate) &#x2F;path&#x2F;to&#x2F;application</li>
+</ul>
+<p>例如：<br>➜ Payload codesign -f -s “iPhone Developer: <a href="mailto:&#x78;&#x78;&#x78;&#64;&#120;&#x78;&#120;&#46;&#99;&#111;&#109;">&#x78;&#x78;&#x78;&#64;&#120;&#x78;&#120;&#46;&#99;&#111;&#109;</a> (9283B989BB)” xxx.app<br>xxx.app: replacing existing signature<br>➜ Payload codesign -dvvv xxx.app</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2016/11/05/iOS%E5%BA%94%E7%94%A8%E8%84%B1%E5%A3%B3%E5%92%8C%E9%87%8D%E7%AD%BE%E5%90%8D/" title="iOS应用脱壳和重签名">http://example.com/2016/11/05/iOS应用脱壳和重签名/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/iOS/" rel="tag"># iOS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/09/14/iOS-RunLoop-Learn/" rel="prev" title="iOS RunLoop理解及实践场景分析">
+      <i class="fa fa-chevron-left"></i> iOS RunLoop理解及实践场景分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/04/24/iOS-WKWebview-Tips/" rel="next" title="WKWebview Tips">
+      WKWebview Tips <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E6%9C%9F%E5%B9%B2%E8%B4%A7"><span class="nav-number">1.</span> <span class="nav-text">前期干货</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">工具：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%B1%E5%A3%B3"><span class="nav-number">1.2.</span> <span class="nav-text">脱壳</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E7%AD%BE%E5%90%8Dapp"><span class="nav-number">2.</span> <span class="nav-text">重签名app</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '38ddb0222f217ce7a64e65759e63e501',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

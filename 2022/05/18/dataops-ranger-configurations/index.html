@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言近年来，越来越多的企业享受大数据平台实施带来的数据价值，也期望接入更多的企业数据及开放不同业务域的数据给不同的用户。因此，在大数据平台构建过程中，需实现完整的权限管理流程，给正确的用户以访问正确的资源权限，避免数据被窃取和被破坏。本文基于此背景，介绍大数据平台通用权限管理框架Ranger 的原理、企业级权限管理设计以及一些实践分享。希望能给大家在大数据平台权限管理落地上提供一些参考。 Rang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="企业私有云大数据平台权限管理分享（一）">
+<meta property="og:url" content="http://example.com/2022/05/18/dataops-ranger-configurations/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言近年来，越来越多的企业享受大数据平台实施带来的数据价值，也期望接入更多的企业数据及开放不同业务域的数据给不同的用户。因此，在大数据平台构建过程中，需实现完整的权限管理流程，给正确的用户以访问正确的资源权限，避免数据被窃取和被破坏。本文基于此背景，介绍大数据平台通用权限管理框架Ranger 的原理、企业级权限管理设计以及一些实践分享。希望能给大家在大数据平台权限管理落地上提供一些参考。 Rang">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/05/18/dataops-ranger-configurations/ranger-arch.jpg">
+<meta property="og:image" content="http://example.com/2022/05/18/dataops-ranger-configurations/ranger-user-sync.jpg">
+<meta property="og:image" content="http://example.com/2022/05/18/dataops-ranger-configurations/ranger-resources.jpg">
+<meta property="og:image" content="http://example.com/2022/05/18/dataops-ranger-configurations/ranger-access-log.jpg">
+<meta property="article:published_time" content="2022-05-18T09:41:47.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.201Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="DataOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/18/dataops-ranger-configurations/ranger-arch.jpg">
+
+<link rel="canonical" href="http://example.com/2022/05/18/dataops-ranger-configurations/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>企业私有云大数据平台权限管理分享（一） | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/18/dataops-ranger-configurations/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          企业私有云大数据平台权限管理分享（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-18 17:41:47" itemprop="dateCreated datePublished" datetime="2022-05-18T17:41:47+08:00">2022-05-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>近年来，越来越多的企业享受大数据平台实施带来的数据价值，也期望接入更多的企业数据及开放不同业务域的数据给不同的用户。因此，在大数据平台构建过程中，需实现完整的权限管理流程，给正确的用户以访问正确的资源权限，避免数据被窃取和被破坏。本文基于此背景，介绍大数据平台通用权限管理框架Ranger 的原理、企业级权限管理设计以及一些实践分享。希望能给大家在大数据平台权限管理落地上提供一些参考。</p>
+<h3 id="Ranger-原理介绍"><a href="#Ranger-原理介绍" class="headerlink" title="Ranger 原理介绍"></a>Ranger 原理介绍</h3><p>众所周知，一些常用的权限管控模型主要有:</p>
+<ul>
+<li>ACL(Access Control List): 基于用户级别的权限控制；</li>
+<li>RBAC(Role Base Access Control): 基于角色级别的权限控制；与ACL 不同的是RBAC 不用给用户单个分配权限，权限与用户之间通过角色关联；</li>
+<li>ABAC(Attribute Base Access Control): 基于属性级别的权限控制；通过动态计算一个或者一组属性是否满足某种条件来进行权限判断，可以实现细粒度且灵活的权限控制。</li>
+</ul>
+<span id="more"></span>
+
+<p>详细的权限管理模型和流程可以搜索博文<code>权限管理数据模型、权限申请审批与认证流总结</code>;</p>
+<p>目前已有的授权管理开源框架有<a target="_blank" rel="noopener" href="https://sentry.apache.org/">Sentry</a> 和 <a target="_blank" rel="noopener" href="https://ranger.apache.org/">Ranger</a>。Sentry 是由Cloudera 公司开发，在CDH 集群中提供的权限管理框架；Ranger 最初是由Hortonworks 主导开发，在HDP 集群中集成使用，后续Cloudera 和 Hortonworks 两家公司合并后统一推出的大数据平台产品CDP 中默认提供的是Ranger。两者都可以做到基于RBAC 权限管控模型做到细粒度的Hdadoop 系统权限管理的，而Ranger 对比Sentry 更加通用，支持的资源也更多。Ranger 通过与Atlas 集成还可以做到基于ABAC 的权限管控。</p>
+<p><img src="/2022/05/18/dataops-ranger-configurations/ranger-arch.jpg" alt="ranger-arch"><br>如上流程图所示，Ranger 是集中式的权限管理，可以通过Web UI或REST API 管理，基于策略的访问权限控制，支持多种大数据组件资源，如HDFS、Hive、Kafka、Yarn、Atlas和Nifi等，并提供审计功能，使用户的操作有迹可循。</p>
+<p>Ranger 主体包含了三个服务：</p>
+<ul>
+<li>Ranger Admin: 提供权限策略管控服务，分配相应资源给对应的用户、组或者角色。</li>
+<li>Ranger UserSync: 提供用户和组同步服务，启动时和每一小时同步一次用户，可以同步LDAP&#x2F;AD、UNIX和文件中定义的用户。</li>
+<li>Ranger TagSync: 主要用于和Atlas 集成，同步Atlas 上定义的Tag，可以做基于Tag 的权限控制。</li>
+</ul>
+<p>Ranger 支持的外围资源组件Plugin 会默认每隔30s 向RangerAdmin 拉取一次策略，记录缓存和版本号。</p>
+<p><strong>总体来讲，Ranger 利用大数据组件自身的鉴权方案，插件化的集成多种资源，具有很好的通用能力，有统一的Web UI提供便捷直观的管理，同时提供丰富的REST API 便于二次开发，可扩展性强。</strong></p>
+<h3 id="企业权限管理实施"><a href="#企业权限管理实施" class="headerlink" title="企业权限管理实施"></a>企业权限管理实施</h3><p>企业内员工的流入和流出量大，新旧人员的数据权限管理大大增加了企业管理成本，因此企业中往往使用统一的集中式的员工账号体系，管理员工在不同系统中的资源权限，就我们项目上的客户就使用Microsoft Active Directory 统一集团几万名员工的账号管理。企业员工可以使用自己的AD 账号登录支持AD 认证的软件或者组件使用其服务。一些分析型部门会使用AD 账号登录报表工具或者直连支持AD 的数据库进行分析和查看数据。</p>
+<p>AD 本身是内建有Kerberos 支持的，而Kerberos 是Hadoop 生态系统中应用最广的集中式统一用户认证管理框架。之前介绍中，Ranger 也很好的支持了AD 的用户和组同步。</p>
+<p>对于大数据平台多租户场景，设计以AD Group 为主体的权限控制，在Ranger 中设定好Role 和 AD Group的对应关系与RBAC 管理策略后，只需要在AD 上将成员加入到对应Group 上即可获得相应资源的权限。</p>
+<p>这样设计的优势是<strong>统一大数据资源组件和其他支持AD 的报表工具或数据库的权限管控，只需管理对应的AD Group</strong>，而对于经常需要新增或者调整细粒度权限控制时，需要在AD 管理到Role 与Group映射关系建立整个流程上调整。<br>简要流程如下：</p>
+<ol>
+<li>在AD Server中新建好约定好的Group（约定OU 和 CN）</li>
+<li>Ranger 中UserSync 服务同步Group 和User</li>
+<li>在Ranger 中配置Role 和Group的对应关系、Role 访问相应资源的Policy</li>
+<li>各个资源的Plugin 同步Ranger 中的Policy 以做权限校验</li>
+</ol>
+<p>以下是具体链路流程图:<br><img src="/2022/05/18/dataops-ranger-configurations/ranger-user-sync.jpg" alt="ranger-user-sync"></p>
+<p>在具体实践前，需要理解AD&#x2F;LDAP 中的一些<a target="_blank" rel="noopener" href="https://blog.51cto.com/407711169/1439623">LDAP 基础概念</a>;<br>需要注意Ranger 配置中的User Search Base &amp; Fliter 和 Group Search Base &amp; Fliter 规则（CN 可以使用星号<code>*</code>匹配），两者是相互影响的。具体配置可以参考这篇文章<a target="_blank" rel="noopener" href="https://docs.cloudera.com/cdp-private-cloud-base/7.1.6/security-ranger-authentication-unix-ldap-ad/topics/security-ranger-authentication-ad-integration-usersync.html">Ranger Usersync</a></p>
+<p>小Tips: 在配置具体Sync 规则前，可以使用LDAP 命令search 验证一下。参考<a target="_blank" rel="noopener" href="https://ldapwiki.com/wiki/LDAP%20Query%20Basic%20Examples">LDAP Query Basic Examples</a></p>
+<h3 id="Ranger-资源管理与审计"><a href="#Ranger-资源管理与审计" class="headerlink" title="Ranger 资源管理与审计"></a>Ranger 资源管理与审计</h3><p>Ranger 支持的大数据资源非常丰富且权限项也比较完整，见下表<br><img src="/2022/05/18/dataops-ranger-configurations/ranger-resources.jpg" alt="ranger-resources"><br>在Ranger 权限策略访问决策树中支持黑白名单的，具体优先级是<code>黑名单优先级高于白名单，黑名单排除优先级高于黑名单，白名单排除优先级高于白名单，白名单排除优先级高于白名单</code>。<br>此外，如果没有policy 能决策访问，一般是认为没有权限拒绝访问的，然而Ranger 还可以选择将决策放给系统自身的访问控制层。如HDFS 支持hdfs-acl。</p>
+<p>Ranger 可以提供多方面的审计信息，如用户访问资源记录，管理员更新Policy记录，Ranger Web UI登录session记录，资源Plugins同步情况和状态以及用户同步记录。其中最关心的是Access log，如下图所示：<br><img src="/2022/05/18/dataops-ranger-configurations/ranger-access-log.jpg" alt="ranger-access-log"><br>具体的字段含义可以在这里查看<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/RANGER/Ranger+Audit+Schema">Ranger Audit Schema</a><br>需要注意的是Ranger 的审计日志量非常大，还会写入到Solr 中，如果Solr 角色配置的内存不足，很容易出现内存溢出的情况，目前项目上的实践是去掉不必要的审计（非业务数据组件不接入审计）、缩短审计日志保存时间和增大Solr 内存。</p>
+<h3 id="Two-More-Things"><a href="#Two-More-Things" class="headerlink" title="Two More Things"></a>Two More Things</h3><h4 id="Security-Zone"><a href="#Security-Zone" class="headerlink" title="Security Zone"></a>Security Zone</h4><p>Ranger 还支持Security Zone 功能，可以将多个资源划分到不同的Security Zone中，并给Security Zone分配不同的管理员进行权限管理。<br>如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Zone: finance</span><br><span class="line"> service: prod_hdfs; path=/finance/*, /taxes/*</span><br><span class="line"> service: prod_hive; database=finance</span><br><span class="line"> service: prod_kafka; topic=FIN_*</span><br><span class="line"> service: test_hadoop; path=/finance/*, /taxes/*</span><br><span class="line"></span><br><span class="line">Zone: sales</span><br><span class="line"> service: prod_hdfs; path=/sales/*</span><br><span class="line"> service: prod_hive; database=sales</span><br><span class="line"> service: prod_kafka; topic=SALES_*</span><br></pre></td></tr></table></figure>
+<p>可以在Ranger 配置中配置Admin User fliter，然后创建Security Zone 配置相应资源和Admin用户，注意配置Zone的资源权限时不要配置属于其他Zone的资源权限，Ranger Plugin鉴权时会先判断资源属于哪个Security Zone，然后只使用该Security Zone中配置的权限进行鉴权，如果未找到所属Zone，则使用未划分Zone 的权限鉴权。</p>
+<blockquote>
+<p>扩展：Data Mesh 的一种实现？</p>
+</blockquote>
+<h4 id="Ranger-RMS"><a href="#Ranger-RMS" class="headerlink" title="Ranger RMS"></a>Ranger RMS</h4><p>Hive 的物理存储路径是HDFS 上，对于多种任务的访问权限支持，往往需要在Ranger 上配置HDFS 文件和目录权限以及Hive的权限。而Ranger RMS 支持自动使用Hive 的策略直接访问对于表的HDFS 数据方法，减少了策略管理的开销。<br>具体设计和实现可以参考<a target="_blank" rel="noopener" href="https://blog.cloudera.com/an-introduction-to-ranger-rms/">Ranger RMS</a>。注：目前为止，我们暂未在项目上使用该组件。</p>
+<h3 id="总结和展望"><a href="#总结和展望" class="headerlink" title="总结和展望"></a>总结和展望</h3><p>本文介绍了使用Ranger 进行企业大数据平台资源管理实践及过程中一些注意事项，当然还有一些其他方面的问题，如实时鉴权、Spark SQL 访问Hive 细粒度支持、批量权限管理及策略量大的场景下同步和拉取的问题等；好在Ranger 的设计是插件化且提供了丰富的REST API，许多企业也对Ranger 及其Plugins 进行了二次开发已解决以上一些问题。</p>
+<p>而企业大数据平台权限管理就止步于此了吗？显然不是，下一篇将给大家带来基于CDP(Cloudera Private Platform) 上开发、运维链路上权限管理的更多实践，感谢阅读。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://ranger.apache.org/">Ranger</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.cloudera.com/cdp-private-cloud-base/7.1.6/security-ranger-authentication-unix-ldap-ad/topics/security-ranger-authentication-ad-integration.html">Ranger AD Integration</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.0.1/configuring-ranger-authe-with-unix-ldap-ad/content/ranger_ad_integration_ranger_usersync.html">Ranger User Sync</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/yfxkhjdask0eme2gaqnz">滴滴大数据安全权限实践</a></p>
+<p><a target="_blank" rel="noopener" href="https://tech.youzan.com/bigdatasafety/">有赞大数据平台安全建设实践</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.uml.org.cn/bigdata/202011252.asp">Apache Ranger原理与应用实践</a></p>
+<p><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/RANGER/Ranger+Audit+Schema">Apache Ranger Audit Schema</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.51cto.com/407711169/1439623">LDAP 基础概念</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/androidlushangderen/article/details/85649735">大数据权限授权管理框架：Apache Sentry和Ranger</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.cloudera.com/cdp-private-cloud-base/7.1.6/security-ranger-authorization/topics/security-ranger-security-zones-add.html">Adding a Ranger security zone</a></p>
+<p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/284630.html">Security Zone功能</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2022/05/18/dataops-ranger-configurations/" title="企业私有云大数据平台权限管理分享（一）">http://example.com/2022/05/18/dataops-ranger-configurations/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DataOps/" rel="tag"># DataOps</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/20/book-internet-discuss-zhou/" rel="prev" title="读《周鸿祎自述：我的互联网方法论》">
+      <i class="fa fa-chevron-left"></i> 读《周鸿祎自述：我的互联网方法论》
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/28/dataops-cdp-permission/" rel="next" title="企业私有云大数据平台权限管理分享（二）">
+      企业私有云大数据平台权限管理分享（二） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ranger-%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">Ranger 原理介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%81%E4%B8%9A%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86%E5%AE%9E%E6%96%BD"><span class="nav-number">3.</span> <span class="nav-text">企业权限管理实施</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ranger-%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86%E4%B8%8E%E5%AE%A1%E8%AE%A1"><span class="nav-number">4.</span> <span class="nav-text">Ranger 资源管理与审计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Two-More-Things"><span class="nav-number">5.</span> <span class="nav-text">Two More Things</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Security-Zone"><span class="nav-number">5.1.</span> <span class="nav-text">Security Zone</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ranger-RMS"><span class="nav-number">5.2.</span> <span class="nav-text">Ranger RMS</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E5%92%8C%E5%B1%95%E6%9C%9B"><span class="nav-number">6.</span> <span class="nav-text">总结和展望</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '98eb20660a0ae7cf20cd15cc6ac1a879',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

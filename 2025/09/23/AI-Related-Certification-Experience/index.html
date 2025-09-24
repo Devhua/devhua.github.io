@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了几个AI 相关的证书，有以下几个认证：  Microsoft Certified: Azure Data Scientist Associate（DP100）[https:&#x2F;&#x2F;learn.microsoft.com&#x2F;en-us&#x2F;credentials&#x2F;certifications&#x2F;azure-data-scientist&#x2F;?practice-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI相关认证经验小结">
+<meta property="og:url" content="http://example.com/2025/09/23/AI-Related-Certification-Experience/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了几个AI 相关的证书，有以下几个认证：  Microsoft Certified: Azure Data Scientist Associate（DP100）[https:&#x2F;&#x2F;learn.microsoft.com&#x2F;en-us&#x2F;credentials&#x2F;certifications&#x2F;azure-data-scientist&#x2F;?practice-">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-09-23T11:22:39.000Z">
+<meta property="article:modified_time" content="2025-09-24T07:47:00.244Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/09/23/AI-Related-Certification-Experience/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>AI相关认证经验小结 | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/23/AI-Related-Certification-Experience/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AI相关认证经验小结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-23 19:22:39" itemprop="dateCreated datePublished" datetime="2025-09-23T19:22:39+08:00">2025-09-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-09-24 15:47:00" itemprop="dateModified" datetime="2025-09-24T15:47:00+08:00">2025-09-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了几个AI 相关的证书，有以下几个认证：</p>
+<ul>
+<li><strong>Microsoft Certified: Azure Data Scientist Associate（DP100）</strong>[<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification%5D">https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification]</a></li>
+<li><strong>Databricks Certified Machine Learning Professional</strong> [<a target="_blank" rel="noopener" href="https://www.databricks.com/learn/certification/machine-learning-professional]">https://www.databricks.com/learn/certification/machine-learning-professional]</a></li>
+<li><strong>Databricks Certified Generative AI Engineer Associate</strong> [<a target="_blank" rel="noopener" href="https://www.databricks.com/learn/certification/genai-engineer-associate]">https://www.databricks.com/learn/certification/genai-engineer-associate]</a></li>
+</ul>
+<p>以上的证书主要涉及Azure 提供的ML studio 和Databricks 的ML Workspace，认证考试的内容大部分与相关套件的使用相关。由于最近几年AI 技术迭代以及相关云厂商更新也比较快，这里我根据当时自己考试的准备及遇到的一些题目进行总结。以上的考试题都会不断的根据现有AI 技术的更新而调整，请务必查看相关考试的guide。</p>
+<span id="more"></span>
+
+<h2 id="DP100"><a href="#DP100" class="headerlink" title="DP100"></a>DP100</h2><p>微软的DP100，我是2023年底考试认证的，当时正好项目上使用了Azure ML studio进行模型线上部署，作为总结记录就顺手考了这个认证。从考试准备及内容来看，难度都不大。需要有使用Azure ML Studio的经验，能使用该套件从数据集构建、模型训练、模型评估到部署的全流程。<br>考试内容节选：<br>当时总共43道选择题（有单选和多选），总共120分钟。</p>
+<h3 id="套件相关的内容占比非常多，如"><a href="#套件相关的内容占比非常多，如" class="headerlink" title="套件相关的内容占比非常多，如"></a>套件相关的内容占比非常多，如</h3><ol>
+<li>dataset和datastore的区别，分别如何设置认证及访问控制；</li>
+<li>abfss和azureml 的路径访问</li>
+<li>推理集群、计算集群以及附加计算的区别</li>
+<li>MLtable 中有一列column1为十进制，判断是否符合正态分布</li>
+<li>如何设置Responsible AI Dashboard</li>
+<li>synapse spark pool的链接使用</li>
+<li>MLClient framework的一些接口使用</li>
+<li>重置notebook的状态有哪些方法</li>
+</ol>
+<h3 id="ML相关知识："><a href="#ML相关知识：" class="headerlink" title="ML相关知识："></a>ML相关知识：</h3><ol>
+<li>模型训练时的提前终止策略的设置，超参搜索的算法（Sobol、Grid、Bayesian等）</li>
+<li>阈值优化器的选择</li>
+<li>特征的不公平性，如何降低和防止</li>
+</ol>
+<h3 id="有趣的是，考试中会偶尔出现几个和ML不相关的软件工程知识，如："><a href="#有趣的是，考试中会偶尔出现几个和ML不相关的软件工程知识，如：" class="headerlink" title="有趣的是，考试中会偶尔出现几个和ML不相关的软件工程知识，如："></a>有趣的是，考试中会偶尔出现几个和ML不相关的软件工程知识，如：</h3><ol>
+<li>ssh key的生成指令，如何配置到Azure ML的compute上</li>
+</ol>
+<p>最近又看了下Azure ML Studio的一些进展，发现从模型注册到部署支持都有很大的扩充(如 model catalog，serverless deployment)，包括对于LLM应用的支持，相信在最新的考试内容上会有所体现。在此，建议备考可以先看看Azure 官方提供的一些考试样题[<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/training/courses/dp-100t01]">https://learn.microsoft.com/en-us/training/courses/dp-100t01]</a> </p>
+<h3 id="考试番外篇之Azure："><a href="#考试番外篇之Azure：" class="headerlink" title="考试番外篇之Azure："></a>考试番外篇之Azure：</h3><p>Azure ML Studio感觉还是想打造为企业级AI platform，它的优势是集成了Azure 云上的相关资源，从存储（storage account）,计算资源管理，ACR等，为模型最终上线部署提供了很大的便利（managed endpoint提供了丰富的autoscaling策略）。但在实际全流程体验上来看，其提供的分析套件notebook体验很差，权限及状态管理比较混乱，计算资源的runtime也比较落后，不利于分析使用。</p>
+<h2 id="Databricks-Certified-Machine-Learning-Professional"><a href="#Databricks-Certified-Machine-Learning-Professional" class="headerlink" title="Databricks Certified Machine Learning Professional"></a>Databricks Certified Machine Learning Professional</h2><p>Databricks 一开始是提供spark集群以作为企业级的大数据平台，结合spark ml lib库可以做一些传统的机器学习应用， 随着AI的发展，databricks workspace套件扩展了自身的feature，也大力发展MLOps全流程实践(MLFlow)。它可以基于多云进行实施，我们在Azure 的资源基础上启动了databricks workspace作为数据集构建和模型训练平台。因此我也考了这个证书。</p>
+<p>说回databricks ML professional认证，2小时时间有60道选择题（有单选和多选），也是考察整个ML 流程中的设计和套件使用方面内容。强烈建议先在国外相关考题网站上搜下相关认证的考题，如[<a target="_blank" rel="noopener" href="https://www.examtopics.com/]">https://www.examtopics.com/]</a> 等，可以找到一些参考题目。<br>这里特定指出一些需要注意的点：</p>
+<ol>
+<li>MLFlow对模型全生命周期的管理接口（设置experiment、启动run、记录训练指标以及注册模型）</li>
+<li>Delta lake相关使用及优势</li>
+<li>模型监测中Data drift、Model drift及其他drift和相关的检测算法（Jensen-Shannon距离、卡方检验、KS test等）</li>
+<li>Feature Store相关特性和接口</li>
+</ol>
+<p>总体来讲，考题比较全面和细致，需要了解Databricks在Model的全生命周期上的实践流程和机器学习相关的基础算法。当然，随着现在大模型的发展，Databricks 提供的平台套件也在快速的迭代，也在加入一些LLM相关的tools和out of box的LLM service。</p>
+<h2 id="Databricks-Certified-Generative-AI-Engineer-Associate"><a href="#Databricks-Certified-Generative-AI-Engineer-Associate" class="headerlink" title="Databricks Certified Generative AI Engineer Associate"></a>Databricks Certified Generative AI Engineer Associate</h2><p>这个证书是2025年4月初考的，当时是找了下网上LLM相关的认证，就发现这个，就先考了试试。这个认证从名字上看就能知道内容比较初级，时长90分钟45道选择题，差不多40分钟做完。主要内容还是围绕Databricks提供的toolset去构建一个LLM 应用（RAG 应用）：</p>
+<ol>
+<li>RAG 的整体流程设计</li>
+<li>结合Langchain 库进行prompt engineering和RAG 应用开发</li>
+<li>当前一些public LLMs的特性</li>
+<li>Vector Database的特性与设置（Vector Search算法）</li>
+<li>RAG 应用的数据集构建和优化</li>
+<li>使用Unity Catalog做数据的治理，系统的监控<br>可以看出Databricks还是紧跟AI 的发展，在LLM应用上做了很多的适配和支持，后续考题肯定也会有相应的调整。</li>
+</ol>
+<h3 id="考试番外篇之Databricks"><a href="#考试番外篇之Databricks" class="headerlink" title="考试番外篇之Databricks:"></a>考试番外篇之Databricks:</h3><p>Databricks 从企业级Data Platform快速进化为Data&#x2F;AI Platform，拥有多云集成的能力，并且开发了多种套件（Delta Lake、Unity Catalog、MLFlow等）支持从数据接入到模型上线的整个全流程服务，在市场上很有竞争力。后续我认为还需要在<strong>模型服务（模型的autoscaling策略）</strong>和<strong>LLM 支持</strong>上需要加强。在模型服务上，能提供更灵活的autoscaling的策略，支持更多并发流量且运行环境可以自定义；而在LLM 方面能提供更完善的能力，类似与langfuse 管理企业级RAG 应用开发，同时增加企业级Agent 开发和管理流程，同时增加基础大模型的选择，或者能提供自host基础模型的选项已保障数据不外出等能力。</p>
+<h3 id="总体而言，我还是看好Databricks的。企业落地一个AI-LLM-应用需要考虑的方面很多，而Databricks-正在快速迭代，不断完善以支持企业落地这些应用，在国外是很多企业的首选平台。"><a href="#总体而言，我还是看好Databricks的。企业落地一个AI-LLM-应用需要考虑的方面很多，而Databricks-正在快速迭代，不断完善以支持企业落地这些应用，在国外是很多企业的首选平台。" class="headerlink" title="总体而言，我还是看好Databricks的。企业落地一个AI&#x2F;LLM 应用需要考虑的方面很多，而Databricks 正在快速迭代，不断完善以支持企业落地这些应用，在国外是很多企业的首选平台。"></a>总体而言，我还是看好Databricks的。企业落地一个AI&#x2F;LLM 应用需要考虑的方面很多，而Databricks 正在快速迭代，不断完善以支持企业落地这些应用，在国外是很多企业的首选平台。</h3><p>以上就是本人在这三个认证考试中的一些经验和观察，希望能帮助到读者，有问题可以邮件联系我。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/09/23/AI-Related-Certification-Experience/" title="AI相关认证经验小结">http://example.com/2025/09/23/AI-Related-Certification-Experience/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AI/" rel="tag"># AI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/04/03/LLM-RAG-introduction/" rel="prev" title="RAG 观察">
+      <i class="fa fa-chevron-left"></i> RAG 观察
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DP100"><span class="nav-number">2.</span> <span class="nav-text">DP100</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A5%97%E4%BB%B6%E7%9B%B8%E5%85%B3%E7%9A%84%E5%86%85%E5%AE%B9%E5%8D%A0%E6%AF%94%E9%9D%9E%E5%B8%B8%E5%A4%9A%EF%BC%8C%E5%A6%82"><span class="nav-number">2.1.</span> <span class="nav-text">套件相关的内容占比非常多，如</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ML%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">ML相关知识：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E8%B6%A3%E7%9A%84%E6%98%AF%EF%BC%8C%E8%80%83%E8%AF%95%E4%B8%AD%E4%BC%9A%E5%81%B6%E5%B0%94%E5%87%BA%E7%8E%B0%E5%87%A0%E4%B8%AA%E5%92%8CML%E4%B8%8D%E7%9B%B8%E5%85%B3%E7%9A%84%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%E7%9F%A5%E8%AF%86%EF%BC%8C%E5%A6%82%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">有趣的是，考试中会偶尔出现几个和ML不相关的软件工程知识，如：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%80%83%E8%AF%95%E7%95%AA%E5%A4%96%E7%AF%87%E4%B9%8BAzure%EF%BC%9A"><span class="nav-number">2.4.</span> <span class="nav-text">考试番外篇之Azure：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Databricks-Certified-Machine-Learning-Professional"><span class="nav-number">3.</span> <span class="nav-text">Databricks Certified Machine Learning Professional</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Databricks-Certified-Generative-AI-Engineer-Associate"><span class="nav-number">4.</span> <span class="nav-text">Databricks Certified Generative AI Engineer Associate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%80%83%E8%AF%95%E7%95%AA%E5%A4%96%E7%AF%87%E4%B9%8BDatabricks"><span class="nav-number">4.1.</span> <span class="nav-text">考试番外篇之Databricks:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E6%88%91%E8%BF%98%E6%98%AF%E7%9C%8B%E5%A5%BDDatabricks%E7%9A%84%E3%80%82%E4%BC%81%E4%B8%9A%E8%90%BD%E5%9C%B0%E4%B8%80%E4%B8%AAAI-LLM-%E5%BA%94%E7%94%A8%E9%9C%80%E8%A6%81%E8%80%83%E8%99%91%E7%9A%84%E6%96%B9%E9%9D%A2%E5%BE%88%E5%A4%9A%EF%BC%8C%E8%80%8CDatabricks-%E6%AD%A3%E5%9C%A8%E5%BF%AB%E9%80%9F%E8%BF%AD%E4%BB%A3%EF%BC%8C%E4%B8%8D%E6%96%AD%E5%AE%8C%E5%96%84%E4%BB%A5%E6%94%AF%E6%8C%81%E4%BC%81%E4%B8%9A%E8%90%BD%E5%9C%B0%E8%BF%99%E4%BA%9B%E5%BA%94%E7%94%A8%EF%BC%8C%E5%9C%A8%E5%9B%BD%E5%A4%96%E6%98%AF%E5%BE%88%E5%A4%9A%E4%BC%81%E4%B8%9A%E7%9A%84%E9%A6%96%E9%80%89%E5%B9%B3%E5%8F%B0%E3%80%82"><span class="nav-number">4.2.</span> <span class="nav-text">总体而言，我还是看好Databricks的。企业落地一个AI&#x2F;LLM 应用需要考虑的方面很多，而Databricks 正在快速迭代，不断完善以支持企业落地这些应用，在国外是很多企业的首选平台。</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '813eec674610bdcf548795dc1a36a9dd',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

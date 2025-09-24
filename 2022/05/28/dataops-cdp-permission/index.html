@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言上文介绍了大数据平台资源权限管理框架Ranger 的原理和企业权限管理实践，然而企业大数据平台的权限管理应该包含这个数据开发、运维链路，尤其是在平台多租户使用的场景下，需要格外注意是否有权限管控不当问题。本文将结合CDP(Cloudera Private Platform) 平台组件，介绍平台大数据开发、运维链路上的权限管控实践。 多租户场景需求在CDP 大数据平台上，有多个团队使用不同的组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="企业私有云大数据平台权限管理分享（二）">
+<meta property="og:url" content="http://example.com/2022/05/28/dataops-cdp-permission/index.html">
+<meta property="og:site_name" content="华少的博客">
+<meta property="og:description" content="前言上文介绍了大数据平台资源权限管理框架Ranger 的原理和企业权限管理实践，然而企业大数据平台的权限管理应该包含这个数据开发、运维链路，尤其是在平台多租户使用的场景下，需要格外注意是否有权限管控不当问题。本文将结合CDP(Cloudera Private Platform) 平台组件，介绍平台大数据开发、运维链路上的权限管控实践。 多租户场景需求在CDP 大数据平台上，有多个团队使用不同的组件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/05/28/dataops-cdp-permission/cdp-ad-interact.jpg">
+<meta property="og:image" content="http://example.com/2022/05/28/dataops-cdp-permission/hue-doas.jpg">
+<meta property="article:published_time" content="2022-05-28T09:51:44.000Z">
+<meta property="article:modified_time" content="2025-01-02T07:19:26.199Z">
+<meta property="article:author" content="洛上倾城华少">
+<meta property="article:tag" content="DataOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/28/dataops-cdp-permission/cdp-ad-interact.jpg">
+
+<link rel="canonical" href="http://example.com/2022/05/28/dataops-cdp-permission/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>企业私有云大数据平台权限管理分享（二） | 华少的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="华少的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">华少的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">谁的头顶上没有灰尘，谁的肩上没有过齿痕</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-fw fa-fa fa-rss"></i>RSS</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/28/dataops-cdp-permission/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="洛上倾城华少">
+      <meta itemprop="description" content="Data & AI & 全栈开发">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="华少的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          企业私有云大数据平台权限管理分享（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-28 17:51:44" itemprop="dateCreated datePublished" datetime="2022-05-28T17:51:44+08:00">2022-05-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-01-02 15:19:26" itemprop="dateModified" datetime="2025-01-02T15:19:26+08:00">2025-01-02</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上文介绍了大数据平台资源权限管理框架Ranger 的原理和企业权限管理实践，然而企业大数据平台的权限管理应该包含这个数据开发、运维链路，尤其是在平台<strong>多租户</strong>使用的场景下，需要格外注意是否有权限管控不当问题。本文将结合CDP(Cloudera Private Platform) 平台组件，介绍平台大数据开发、运维链路上的权限管控实践。</p>
+<h3 id="多租户场景需求"><a href="#多租户场景需求" class="headerlink" title="多租户场景需求"></a>多租户场景需求</h3><p>在CDP 大数据平台上，有多个团队使用不同的组件，如IT 运维使用Cloudera Manager 管理大数据集群、使用Ranger 管理资源权限，多个团队使用Hue 进行ETL 任务开发和数据分析，使用Atlas 管理数据资产等。上篇中提到企业使用集中式的员工账号管理（Microsoft Active Directory），其内建Kerberos 支持，而Kerberos 也是Hadoop 生态系统中应用最广泛的用户认证管理框架。</p>
+<span id="more"></span>
+
+<p>简单来说，Kerberos 是一种身份验证协议，使用加密机制来处理客户端和服务器之间的请求交互，大大降低了假冒的风险。用户登录到其系统时输入的密码用于解锁本地机制，然后在与受信任的第三方的后续交互中使用该机制向用户授予用于对请求的服务进行身份验证的票据(具有有限的生命周期，默认10小时)。客户端进程和服务端进程相互证明身份后，通信进行加密，以保证隐私性和数据完整性。</p>
+<p>而这个受信任的第三方是Kerberos Key Distribution Center(KDC)，它是Kerberos操作的焦点，还为系统提供身份验证服务和票据授予服务(TGS)。简单地说，TGS向请求的用户或服务发出一个票据，然后将该票据提供给被请求的服务，该服务在票据生命周期内证明用户(或服务)的身份。</p>
+<p>CDP 集群中的服务和用户主体都需要支持与Active Directory KDC 进行身份认证，才能保障多租户场景下，管理用户使用相应权限的资源和服务。</p>
+<h4 id="CDP-集成AD-身份认证"><a href="#CDP-集成AD-身份认证" class="headerlink" title="CDP 集成AD 身份认证"></a>CDP 集成AD 身份认证</h4><p>CDP 中的服务可以分为三种，<code>基础服务</code>、<code>网关服务</code>和<code>公共服务</code>，CDP 本身是不提供Kerberos 实现的，可以集成本地MIT KDC 服务或者远程集中式的AD服务，这里推荐使用企业级AD 服务做集成。<br>CDP 集群与AD KDC 服务交付流程如下图：<br><img src="/2022/05/28/dataops-cdp-permission/cdp-ad-interact.jpg" alt="cdp-ad-interact"></p>
+<p>由此可见，CM 用于连接AD KDC, 创建和管理集群中各服务的Principals，因此CM 需要使用一个有权限在给定OU 内创建其他账户权限的账号，所有支持kerberos 的服务和用户 Principals都在AD KDC 中创建和进行身份验证。</p>
+<p>CDP 中大部分组件服务都是支持Kerberos 认证的，服务身份认证请求涉及到几个不同的子系统，包括密钥分发中心(KDC)、身份验证服务(AS)和票证授予服务(TGS)。集群中的节点越多，提供的服务越多，这些服务与集群上运行的服务之间的流量就越大。这时身份认证容易形成瓶颈，<strong>推荐在生产环境集群使用LB AD服务</strong>。默认情况下，Kerberos使用TCP进行客户端&#x2F;服务器通信，但在传递数据包方面不如UDP 快，因此**建议开启优先使用UDP 的配置<code>udp_preference_limit = 1</code>**。</p>
+<p>虽然Kerberos 认证相对复杂，但在CDP 上这些过程大都是透明的，集群的业务用户只需在登录页面输入用户名和密码，Ticket 处理、加密和其他详细信息都会在后台自动完成，不仅可以对单个服务目标进行身份验证，还可以对整个网络进行身份验证。</p>
+<p>CDP 中关键组件集成AD 权限表：</p>
+<table>
+<thead>
+<tr>
+<th>组件名称</th>
+<th>说明</th>
+<th>权限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cloudera Manager</td>
+<td>集中化的管理CDP 集群，接入各个服务的管理配置、监控以及日志等</td>
+<td>支持本地用户和同步AD user和group，并设置不同的role，如<code>Cluster Administrator/Configurator/Limited Operator/Operator/Read-Only</code></td>
+</tr>
+<tr>
+<td>Hue</td>
+<td>Hadoop User Experience - 可视化数据分析工作台</td>
+<td>支持本地用户和LDAP user和group，并自定义用户使用基础服务的权限，如oozie，hive sql，filebrowser，impala等</td>
+</tr>
+<tr>
+<td>Ranger</td>
+<td>权限管理服务</td>
+<td>可配置登录Ranger Admin Web UI的AD user filter</td>
+</tr>
+<tr>
+<td>Atlas</td>
+<td>元数据管理服务</td>
+<td>支持本地用户和同步AD user和group，管理的元数据权限由Ranger策略控制</td>
+</tr>
+</tbody></table>
+<p>总结来讲，在CDP 中，开发、运维和业务分析的相关组件可以便捷的集成AD 账号管理体系，结合集群资源管理服务Ranger 可以做到全链路上多租户的使用场景权限管理支撑。</p>
+<h4 id="Hue-中使用集群基础服务"><a href="#Hue-中使用集群基础服务" class="headerlink" title="Hue 中使用集群基础服务"></a>Hue 中使用集群基础服务</h4><p>CDP 中，作为网关服务的Hue 组件是数据开发运维和分析中常用的服务，它能提供可视化的webui界面，支持大部分的大数据框架，如HDFS 文件浏览器、Hive、外部RDBMS、Oozie任务调度管理等，简化了用户和Hadoop 集群的交互。Hue是基于Django 开发的B&#x2F;S应用，<br>使用<code>django-auth-ldap</code> 库来集成LDAP 同步和认证<code>django_auth_ldap.LDAPBackend</code>；认证有了之后，对于其他资源的访问操作，需要构建不同的connector。</p>
+<p>Hue 作为web 服务器，在访问底层大数据服务如HDFS、Hive时，以预定义的特定用户进行认证，同时将业务用户（如bob）的个人信息附加在请求信息中，传递到底层的hive服务器，hive 服务器会以特定账号认证，然后又以业务用户的身份进行权限判断。如下图：<br><img src="/2022/05/28/dataops-cdp-permission/hue-doas.jpg" alt="hue-doas"></p>
+<p>关键代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">def open_session(self, user):</span><br><span class="line">    self.user = user</span><br><span class="line">    kwargs = &#123;</span><br><span class="line">        &#x27;client_protocol&#x27;: beeswax_conf.THRIFT_VERSION.get() - 1,</span><br><span class="line">        &#x27;username&#x27;: user.username,  # If SASL or LDAP, it gets the username from the authentication mechanism since it dependents on it.</span><br><span class="line">        &#x27;configuration&#x27;: &#123;&#125;,</span><br><span class="line">    &#125;</span><br><span class="line">    connector_type = &#x27;hive&#x27; if self.query_server[&#x27;server_name&#x27;] == &#x27;beeswax&#x27; else self.query_server[&#x27;server_name&#x27;]</span><br><span class="line">    interpreter = get_interpreter(connector_type=connector_type, user=self.user)</span><br><span class="line"></span><br><span class="line">    if self.impersonation_enabled:</span><br><span class="line">    // 开启impersonation(doas)机制情况下</span><br><span class="line">      kwargs.update(&#123;&#x27;username&#x27;: DEFAULT_USER&#125;)</span><br><span class="line"></span><br><span class="line">      if self.query_server.get(&#x27;dialect&#x27;) == &#x27;impala&#x27;:  # Only when Impala accepts it</span><br><span class="line">        kwargs[&#x27;configuration&#x27;].update(&#123;&#x27;impala.doas.user&#x27;: user.username&#125;)</span><br><span class="line"></span><br><span class="line">    if self.query_server[&#x27;server_name&#x27;] == &#x27;beeswax&#x27;: # All the time</span><br><span class="line">    // LDAP 上的业务用户</span><br><span class="line">      kwargs[&#x27;configuration&#x27;].update(&#123;&#x27;hive.server2.proxy.user&#x27;: user.username&#125;)</span><br><span class="line">      ...</span><br></pre></td></tr></table></figure>
+
+<h4 id="一些补充"><a href="#一些补充" class="headerlink" title="一些补充"></a>一些补充</h4><p>以上介绍了CDP集群组件与Kerberos 认证和hadoop 的doAs 机制，同时不得不提到Knox 代理，Knox 通过对Hadoop 生态系统组件提供Gateway 的形式来加强安全管控，类似于一个Rest&#x2F;HTTP 的服务代理&#x2F;防火墙。使用Knox需要注意的是只针对Rest&#x2F;HTTP服务，可以通过简单的auth 身份认证代理kerberos 认证，同时也有很大的局限性，如单点，性能和流程等。对于自身不支持权限认证或者不合适接入Kerberos 认证的服务，可以考虑使用Knox 叠加一层权限管控，例如CDP 中的kafka Connector对集成kerberos 认证的schema registry服务支持不完善，可以考虑加入一层Knox代理访问。</p>
+<p>另外，部分服务间通信不完善的场景下，可以尝试将service account的keytab（这里不推荐个人account的keytab，因为企业一般要求个人账户定期修改密码）放入HDFS 目录，通过Ranger 控制用户对相应目录的权限进行权限管理，有权限的用户可以使用该keytab进行服务交互。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文介绍了CDP 中集群与Kerberos 认证流程、服务账号创建和分发使用，CDP 通过对集群开发运维和分析使用到的用户组件进行相应的用户权限管理，使得集群中的服务能支持多租户使用的全链路场景。然而大数据平台中除了权限控制链路，还有关联的安全措施，只有做到这些才能保护企业数据不被窃取和破坏。下篇将介绍大数据平台中的一些安全实施策略和原理，感谢阅读。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://web.mit.edu/kerberos/">Kerberos</a></p>
+<p><a target="_blank" rel="noopener" href="https://seevae.github.io/2020/09/12/%E8%AF%A6%E8%A7%A3kerberos%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B/">详解kerberos认证原理</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.cloudera.com/cdp-private-cloud-base/7.1.6/security-overview/topics/cm-security-authentication-overview.html">Authentication Overview</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.cloudera.com/cdp-private-cloud-base/7.1.6/atlas-securing/topics/atlas-configure-ad-authentication.html">Configure Atlas authentication for AD</a></p>
+<p><a target="_blank" rel="noopener" href="https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/Superusers.html">Hadoop Proxy user</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/yu616568/article/details/54969729">Hiveserver2的代理执行之路</a></p>
+<p><a target="_blank" rel="noopener" href="https://django-auth-ldap.readthedocs.io/">Django Authentication Using LDAP</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>洛上倾城华少
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2022/05/28/dataops-cdp-permission/" title="企业私有云大数据平台权限管理分享（二）">http://example.com/2022/05/28/dataops-cdp-permission/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DataOps/" rel="tag"># DataOps</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/18/dataops-ranger-configurations/" rel="prev" title="企业私有云大数据平台权限管理分享（一）">
+      <i class="fa fa-chevron-left"></i> 企业私有云大数据平台权限管理分享（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/21/what-dataops/" rel="next" title="DataOps 体系化">
+      DataOps 体系化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%A7%9F%E6%88%B7%E5%9C%BA%E6%99%AF%E9%9C%80%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">多租户场景需求</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CDP-%E9%9B%86%E6%88%90AD-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81"><span class="nav-number">2.1.</span> <span class="nav-text">CDP 集成AD 身份认证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hue-%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%9B%86%E7%BE%A4%E5%9F%BA%E7%A1%80%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.2.</span> <span class="nav-text">Hue 中使用集群基础服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E8%A1%A5%E5%85%85"><span class="nav-number">2.3.</span> <span class="nav-text">一些补充</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="洛上倾城华少"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">洛上倾城华少</p>
+  <div class="site-description" itemprop="description">Data & AI & 全栈开发</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Devhua" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Devhua" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/369444912@qq.com" title="E-Mail → 369444912@qq.com"><i class="fa fa-fw fa-fa fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/3218101390" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;3218101390" rel="noopener" target="_blank"><i class="fa fa-fw fa-fab fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-fa fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.bilibili.com/" title="https:&#x2F;&#x2F;www.bilibili.com&#x2F;" rel="noopener" target="_blank">bilibili</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">洛上倾城华少</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">68k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:54</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '93c587c2adcb2b468877',
+      clientSecret: 'f15e0547708ddc85e9960a6f6eacff1b26bc50b8',
+      repo        : 'devhua.github.io',
+      owner       : 'Devhua',
+      admin       : ['Devhua'],
+      id          : '9c0ce92be0c5a7064ba540483523f8ed',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
