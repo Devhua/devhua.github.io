@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-09-24T07:47:00.244Z</updated>
+  <updated>2025-09-24T08:21:52.657Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,14 +17,14 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>AI相关认证经验小结</title>
+    <title>AI 相关认证经验小结</title>
     <link href="http://example.com/2025/09/23/AI-Related-Certification-Experience/"/>
     <id>http://example.com/2025/09/23/AI-Related-Certification-Experience/</id>
     <published>2025-09-23T11:22:39.000Z</published>
-    <updated>2025-09-24T07:47:00.244Z</updated>
+    <updated>2025-09-24T08:21:52.657Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了几个AI 相关的证书，有以下几个认证：&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;最近AI 发展迅猛，作为相关岗位从业者，我也陆续考了以下三个AI 相关的证书：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Microsoft Certified: Azure Data Scientist Associate（DP100）&lt;/strong&gt;[&lt;a href=&quot;https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification%5D&quot;&gt;https://learn.microsoft.com/en-us/credentials/certifications/azure-data-scientist/?practice-assessment-type=certification]&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Databricks Certified Machine Learning Professional&lt;/strong&gt; [&lt;a href=&quot;https://www.databricks.com/learn/certification/machine-learning-professional]&quot;&gt;https://www.databricks.com/learn/certification/machine-learning-professional]&lt;/a&gt;&lt;/li&gt;
